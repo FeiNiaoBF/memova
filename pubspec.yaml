@@ -1,5 +1,5 @@
 name: memova
-description: "A new Flutter project."
+description: "A personal, local-first memo app for Android: plain-text memos, no titles, no accounts, no cloud."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -33,16 +33,17 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  build_runner: ^2.4.15
-  drift_dev: ^2.34.3
   cupertino_icons: ^1.0.8
   drift: ^2.34.3
   flutter_riverpod: ^3.4.2
+  path_provider: ^2.1.6
 
 dev_dependencies:
-  # generated code for drift
   flutter_test:
     sdk: flutter
+  # Code generation only — never shipped in the release app.
+  build_runner: ^2.4.15
+  drift_dev: ^2.34.3
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
