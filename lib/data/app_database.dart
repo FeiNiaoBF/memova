@@ -49,4 +49,29 @@ class MemosDao extends DatabaseAccessor<AppDatabase> with _$MemosDaoMixin {
           ..orderBy([(m) => OrderingTerm.desc(m.updatedAt)]))
         .watch();
   }
+
+  /// Creates a memo from its body and returns the new row id.
+  ///
+  /// Timestamps are owned by the data layer (spec: "timestamps managed by
+  /// the data layer"), never by callers.
+  Future<int> createMemo(String body) {
+    final now = DateTime.now();
+    return into(memos).insert(
+      MemosCompanion.insert(body: body, createdAt: now, updatedAt: now),
+    );
+  }
+
+  /// Replaces the body and bumps [Memos.updatedAt] — the bump is what keeps
+  /// a just-edited memo on top of the List.
+  Future<void> updateMemoBody(int id, String body) {
+    return (update(memos)..where((m) => m.id.equals(id))).write(
+      MemosCompanion(body: Value(body), updatedAt: Value(DateTime.now())),
+    );
+  }
+
+  /// Permanently removes a memo row. Only used to clean up empty drafts;
+  /// user-facing deletion goes through the Trash (ticket #6).
+  Future<void> deleteMemo(int id) {
+    return (delete(memos)..where((m) => m.id.equals(id))).go();
+  }
 }

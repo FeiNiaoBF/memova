@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memova/data/app_database.dart';
-import 'package:memova/features/memo_list/memo_list_providers.dart';
+import 'package:memova/data/providers.dart';
 import 'package:memova/main.dart';
 
 /// Pumps the real app tree with an in-memory database injected through the

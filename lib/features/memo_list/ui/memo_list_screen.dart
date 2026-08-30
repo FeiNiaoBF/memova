@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/app_database.dart';
+import '../../memo_editor/ui/memo_editor_screen.dart';
 import '../memo_list_providers.dart';
 import '../relative_time.dart';
 
@@ -15,6 +16,17 @@ class MemoListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Memova')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const MemoEditorScreen(),
+            ),
+          );
+        },
+        tooltip: 'New memo',
+        child: const Icon(Icons.add),
+      ),
       body: memosAsync.when(
         data: (memos) =>
             memos.isEmpty ? const _EmptyState() : _MemoList(memos: memos),

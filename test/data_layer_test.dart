@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memova/data/app_database.dart';
@@ -49,5 +49,30 @@ void main() {
     final memos = await db.memosDao.watchLiveMemos().first;
 
     expect(memos.map((m) => m.body), ['kept']);
+  });
+
+  test('createMemo persists the body and returns its id', () async {
+    final id = await db.memosDao.createMemo('first thought');
+
+    final memo = await (db.select(db.memos)
+          ..where((m) => m.id.equals(id)))
+        .getSingle();
+    expect(memo.body, 'first thought');
+    expect(memo.trashedAt, isNull);
+  });
+
+  test('updateMemoBody replaces the body and preserves createdAt', () async {
+    final id = await db.memosDao.createMemo('v1');
+    final before = await (db.select(db.memos)
+          ..where((m) => m.id.equals(id)))
+        .getSingle();
+
+    await db.memosDao.updateMemoBody(id, 'v2');
+
+    final after = await (db.select(db.memos)
+          ..where((m) => m.id.equals(id)))
+        .getSingle();
+    expect(after.body, 'v2');
+    expect(after.createdAt, before.createdAt);
   });
 }

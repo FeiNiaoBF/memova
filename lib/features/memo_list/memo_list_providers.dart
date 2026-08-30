@@ -1,13 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/app_database.dart';
-
-/// The app-wide database instance.
-///
-/// Tests override this with an in-memory database — that override is the
-/// whole testing strategy of this app (spec: Testing Decisions).
-/// Lives here for now; moves to `lib/data/` when a second feature arrives.
-final databaseProvider = Provider<AppDatabase>((ref) => openAppDatabase());
+import '../../data/providers.dart';
 
 /// Live memos, newest-updated first, as a reactive stream.
 ///
