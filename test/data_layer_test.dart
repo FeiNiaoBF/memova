@@ -75,4 +75,24 @@ void main() {
     expect(after.body, 'v2');
     expect(after.createdAt, before.createdAt);
   });
+
+  test('trashMemo hides the memo from the live list', () async {
+    final id = await db.memosDao.createMemo('to trash');
+
+    await db.memosDao.trashMemo(id);
+
+    final memos = await db.memosDao.watchLiveMemos().first;
+    expect(memos, isEmpty);
+  });
+
+  test('restoreMemo brings the memo back unchanged', () async {
+    final id = await db.memosDao.createMemo('back again');
+
+    await db.memosDao.trashMemo(id);
+    await db.memosDao.restoreMemo(id);
+
+    final memos = await db.memosDao.watchLiveMemos().first;
+    expect(memos.map((m) => m.body), ['back again']);
+    expect(memos.single.trashedAt, isNull);
+  });
 }

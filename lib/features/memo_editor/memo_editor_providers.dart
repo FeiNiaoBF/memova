@@ -8,12 +8,27 @@ import '../../data/providers.dart';
 /// database (spec: ~500 ms auto-save debounce).
 const _autosaveDelay = Duration(milliseconds: 500);
 
+/// Identifies one editor session: which memo is being edited, if any.
+class MemoEditorArgs {
+  const MemoEditorArgs({this.memoId, this.initialBody = ''});
+
+  /// Row id when editing an existing memo; `null` when creating a new one.
+  final int? memoId;
+
+  /// Pre-filled body for existing memos (empty for a new memo).
+  final String initialBody;
+}
+
 /// The memo editor session: current body + the row id once created.
 ///
 /// Owns the debounce timer and all write logic (architecture rule 3 — the
 /// widget holds no business state). The screen only reports keystrokes and
-/// asks to close.
+/// asks to close. The family argument tells this session which memo it is
+/// editing (`null` id = a brand-new memo).
 class MemoEditor extends Notifier<String> {
+  MemoEditor(this.args);
+
+  final MemoEditorArgs args;
   Timer? _debounce;
   int? _memoId;
 
@@ -21,7 +36,8 @@ class MemoEditor extends Notifier<String> {
   String build() {
     // Riverpod 3 lifecycle: register cleanup here, not via a dispose override.
     ref.onDispose(() => _debounce?.cancel());
-    return '';
+    _memoId = args.memoId;
+    return args.initialBody;
   }
 
   /// Every keystroke resets the debounce timer. An empty body never writes:
@@ -58,7 +74,10 @@ class MemoEditor extends Notifier<String> {
   }
 }
 
-/// One editor session. `autoDispose`: closing the screen disposes the
-/// notifier, so the next open starts fresh — no stale id, no leftover timer.
+/// One editor session, keyed by its [MemoEditorArgs]. `autoDispose`: closing
+/// the screen disposes the notifier, so the next open starts fresh — no stale
+/// id, no leftover timer. Each memo id gets its own session state.
 final memoEditorProvider =
-    NotifierProvider.autoDispose<MemoEditor, String>(MemoEditor.new);
+    NotifierProvider.autoDispose.family<MemoEditor, String, MemoEditorArgs>(
+  MemoEditor.new,
+);

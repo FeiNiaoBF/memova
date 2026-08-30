@@ -3,17 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../memo_editor_providers.dart';
 
-/// A fresh, title-less editor (ADR-0003). Typing auto-saves after a debounce;
-/// closing flushes the pending write and cleans up empty drafts.
+/// A title-less editor (ADR-0003). Fresh when opened without a memo;
+/// pre-filled when editing an existing one. Typing auto-saves after a
+/// debounce; closing flushes the pending write and cleans up empty drafts.
 class MemoEditorScreen extends ConsumerStatefulWidget {
-  const MemoEditorScreen({super.key});
+  const MemoEditorScreen({super.key, required this.args});
+
+  final MemoEditorArgs args;
 
   @override
   ConsumerState<MemoEditorScreen> createState() => _MemoEditorScreenState();
 }
 
 class _MemoEditorScreenState extends ConsumerState<MemoEditorScreen> {
-  final _controller = TextEditingController();
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.args.initialBody);
 
   @override
   void dispose() {
@@ -24,7 +28,7 @@ class _MemoEditorScreenState extends ConsumerState<MemoEditorScreen> {
   /// Flush pending writes, then leave. Shared by the app-bar back button and
   /// the system back gesture (PopScope).
   Future<void> _closeAndPop() async {
-    await ref.read(memoEditorProvider.notifier).close();
+    await ref.read(memoEditorProvider(widget.args).notifier).close();
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -34,8 +38,8 @@ class _MemoEditorScreenState extends ConsumerState<MemoEditorScreen> {
     // have no listeners — read alone does not subscribe, so the session
     // would be disposed after the first frame. Watching keeps it alive for
     // exactly this screen's lifetime.
-    ref.watch(memoEditorProvider);
-    final notifier = ref.read(memoEditorProvider.notifier);
+    ref.watch(memoEditorProvider(widget.args));
+    final notifier = ref.read(memoEditorProvider(widget.args).notifier);
 
     return PopScope(
       canPop: false,

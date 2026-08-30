@@ -74,4 +74,20 @@ class MemosDao extends DatabaseAccessor<AppDatabase> with _$MemosDaoMixin {
   Future<void> deleteMemo(int id) {
     return (delete(memos)..where((m) => m.id.equals(id))).go();
   }
+
+  /// Moves a memo to the Trash: sets [Memos.trashedAt], which hides it from
+  /// the live List (ticket #6 builds the Trash screen around this state).
+  Future<void> trashMemo(int id) {
+    return (update(memos)..where((m) => m.id.equals(id))).write(
+      MemosCompanion(trashedAt: Value(DateTime.now())),
+    );
+  }
+
+  /// Returns a memo from the Trash to the List. [Memos.updatedAt] is left
+  /// untouched, so the memo lands back exactly where it was.
+  Future<void> restoreMemo(int id) {
+    return (update(memos)..where((m) => m.id.equals(id))).write(
+      MemosCompanion(trashedAt: const Value(null)),
+    );
+  }
 }
