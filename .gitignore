@@ -11,6 +11,9 @@ build/
 .vscode/
 *.swp
 
+# Flutter DevTools local settings (per-machine)
+devtools_options.yaml
+
 # macOS
 .DS_Store
 
