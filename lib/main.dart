@@ -1,9 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'data/app_database.dart';
+import 'data/providers.dart';
 import 'features/memo_list/ui/memo_list_screen.dart';
 
-void main() => runApp(const ProviderScope(child: MemovaApp()));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // One database instance for the whole app. Purge memos trashed more than
+  // 30 days ago before the first frame (user story 16); the same instance
+  // is handed to the widget tree so UI and purge share one connection.
+  final db = openAppDatabase();
+  await db.memosDao.purgeTrashedMemos();
+
+  runApp(
+    ProviderScope(
+      overrides: [databaseProvider.overrideWithValue(db)],
+      child: const MemovaApp(),
+    ),
+  );
+}
 
 /// Root of the app. Theming follows the system (Material 3, light + dark).
 class MemovaApp extends StatelessWidget {

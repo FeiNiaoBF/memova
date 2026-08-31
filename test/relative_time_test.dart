@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:memova/features/memo_list/relative_time.dart';
+import 'package:memova/shared/relative_time.dart';
 
 void main() {
   final now = DateTime(2026, 1, 1, 12);

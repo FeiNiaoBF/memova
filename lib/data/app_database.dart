@@ -90,4 +90,31 @@ class MemosDao extends DatabaseAccessor<AppDatabase> with _$MemosDaoMixin {
       MemosCompanion(trashedAt: const Value(null)),
     );
   }
+
+  /// Trashed memos, most-recently-trashed first, as a reactive stream.
+  ///
+  /// Powers the Trash screen (#6); the List's [watchLiveMemos] stays the
+  /// single source of truth for live memos.
+  Stream<List<Memo>> watchTrashedMemos() {
+    return (select(memos)
+          ..where((m) => m.trashedAt.isNotNull())
+          ..orderBy([(m) => OrderingTerm.desc(m.trashedAt)]))
+        .watch();
+  }
+
+  /// Permanently deletes every trashed memo. Live memos are untouched.
+  ///
+  /// The UI guards this behind a confirmation (#6, user story 15).
+  Future<void> emptyTrash() {
+    return (delete(memos)..where((m) => m.trashedAt.isNotNull())).go();
+  }
+
+  /// Permanently deletes memos trashed before [before] (default: 30 days ago).
+  ///
+  /// Called on app start (#6, user story 16); [before] is injectable so
+  /// tests pin the cutoff instead of depending on the wall clock.
+  Future<void> purgeTrashedMemos({DateTime? before}) async {
+    final cutoff = before ?? DateTime.now().subtract(const Duration(days: 30));
+    await (delete(memos)..where((m) => m.trashedAt.isSmallerThanValue(cutoff))).go();
+  }
 }

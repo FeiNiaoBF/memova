@@ -5,8 +5,9 @@ import '../../../data/app_database.dart';
 import '../../../data/providers.dart';
 import '../../memo_editor/memo_editor_providers.dart';
 import '../../memo_editor/ui/memo_editor_screen.dart';
+import '../../trash/ui/trash_screen.dart';
 import '../memo_list_providers.dart';
-import '../relative_time.dart';
+import '../../../shared/relative_time.dart';
 
 /// The home screen: live memos, newest-updated first (user stories 1-2).
 class MemoListScreen extends ConsumerWidget {
@@ -17,7 +18,20 @@ class MemoListScreen extends ConsumerWidget {
     final memosAsync = ref.watch(liveMemosProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Memova')),
+      appBar: AppBar(
+        title: const Text('Memova'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Trash',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const TrashScreen(),
+              ),
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(

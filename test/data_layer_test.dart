@@ -95,4 +95,68 @@ void main() {
     expect(memos.map((m) => m.body), ['back again']);
     expect(memos.single.trashedAt, isNull);
   });
+
+  test('watchTrashedMemos emits trashed memos ordered by trashedAt descending',
+      () async {
+    await insertMemo(
+      'old trash',
+      updatedAt: DateTime(2026, 1, 1, 8),
+      trashedAt: DateTime(2026, 1, 2, 8),
+    );
+    await insertMemo(
+      'new trash',
+      updatedAt: DateTime(2026, 1, 1, 10),
+      trashedAt: DateTime(2026, 1, 3, 10),
+    );
+    await insertMemo('live', updatedAt: DateTime(2026, 1, 4));
+
+    final trashed = await db.memosDao.watchTrashedMemos().first;
+
+    expect(trashed.map((m) => m.body), ['new trash', 'old trash']);
+  });
+
+  test('emptyTrash permanently deletes every trashed memo', () async {
+    await insertMemo(
+      'trash one',
+      updatedAt: DateTime(2026, 1, 1, 8),
+      trashedAt: DateTime(2026, 1, 2),
+    );
+    await insertMemo(
+      'trash two',
+      updatedAt: DateTime(2026, 1, 1, 9),
+      trashedAt: DateTime(2026, 1, 3),
+    );
+    await insertMemo('keep me', updatedAt: DateTime(2026, 1, 4));
+
+    await db.memosDao.emptyTrash();
+
+    final trashed = await db.memosDao.watchTrashedMemos().first;
+    final live = await db.memosDao.watchLiveMemos().first;
+    expect(trashed, isEmpty);
+    expect(live.map((m) => m.body), ['keep me']);
+  });
+
+  test('purgeTrashedMemos deletes only memos trashed before the cutoff',
+      () async {
+    await insertMemo(
+      'too old',
+      updatedAt: DateTime(2026, 1, 1, 8),
+      trashedAt: DateTime(2026, 1, 2),
+    );
+    await insertMemo(
+      'recent trash',
+      updatedAt: DateTime(2026, 1, 1, 9),
+      trashedAt: DateTime(2026, 2, 1),
+    );
+    await insertMemo('live', updatedAt: DateTime(2026, 1, 1, 10));
+
+    // Cutoff: Jan 31 → 'too old' (trashed Jan 2) goes, 'recent trash'
+    // (trashed Feb 1) stays, live memos never touched.
+    await db.memosDao.purgeTrashedMemos(before: DateTime(2026, 1, 31));
+
+    final trashed = await db.memosDao.watchTrashedMemos().first;
+    final live = await db.memosDao.watchLiveMemos().first;
+    expect(trashed.map((m) => m.body), ['recent trash']);
+    expect(live.map((m) => m.body), ['live']);
+  });
 }
