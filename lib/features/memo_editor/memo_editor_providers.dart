@@ -4,10 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/providers.dart';
 
-/// How long the editor waits after typing stops before writing to the
-/// database (spec: ~500 ms auto-save debounce).
-const _autosaveDelay = Duration(milliseconds: 500);
-
 /// Identifies one editor session: which memo is being edited, if any.
 class MemoEditorArgs {
   const MemoEditorArgs({this.memoId, this.initialBody = ''});
@@ -21,32 +17,33 @@ class MemoEditorArgs {
 
 /// The memo editor session: current body + the row id once created.
 ///
-/// Owns the debounce timer and all write logic (architecture rule 3 — the
-/// widget holds no business state). The screen only reports keystrokes and
-/// asks to close. The family argument tells this session which memo it is
-/// editing (`null` id = a brand-new memo).
+/// Owns all write logic (architecture rule 3 — the widget holds no business
+/// state). The screen only reports keystrokes and asks to close. The family
+/// argument tells this session which memo it is editing (`null` id = a
+/// brand-new memo).
+///
+/// Every keystroke writes through to the database immediately (no debounce,
+/// user story 6): a process kill mid-typing never costs text. Writes are
+/// serialized on [_queue] so two fast keystrokes can't both create a row.
 class MemoEditor extends Notifier<String> {
   MemoEditor(this.args);
 
   final MemoEditorArgs args;
-  Timer? _debounce;
   int? _memoId;
+  Future<void> _queue = Future.value();
 
   @override
   String build() {
-    // Riverpod 3 lifecycle: register cleanup here, not via a dispose override.
-    ref.onDispose(() => _debounce?.cancel());
     _memoId = args.memoId;
     return args.initialBody;
   }
 
-  /// Every keystroke resets the debounce timer. An empty body never writes:
+  /// Every keystroke persists immediately. An empty body never writes:
   /// a row is created only after the first character (spec, user story 7).
   void onBodyChanged(String body) {
     state = body;
-    _debounce?.cancel();
     if (body.isEmpty) return;
-    _debounce = Timer(_autosaveDelay, () => _persist(body));
+    _queue = _queue.then((_) => _persist(body));
   }
 
   Future<void> _persist(String body) async {
@@ -58,19 +55,15 @@ class MemoEditor extends Notifier<String> {
     }
   }
 
-  /// Flushes the pending write, then drops an empty draft. Call before
-  /// leaving the editor so the latest text is never lost to the debounce
-  /// window.
+  /// Waits for every pending keystroke to land, then drops an empty draft.
+  /// Call before leaving the editor so nothing is lost to in-flight writes.
   Future<void> close() async {
-    _debounce?.cancel();
-    final body = state;
-    final dao = ref.read(databaseProvider).memosDao;
-    if (body.isEmpty) {
-      // Untouched, or everything was erased — this session leaves no row.
-      if (_memoId != null) await dao.deleteMemo(_memoId!);
-      return;
+    await _queue;
+    if (state.isEmpty && _memoId != null) {
+      // Everything was erased — this session leaves no row.
+      final dao = ref.read(databaseProvider).memosDao;
+      await dao.deleteMemo(_memoId!);
     }
-    await _persist(body);
   }
 }
 

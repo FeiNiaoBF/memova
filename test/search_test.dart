@@ -1,38 +1,9 @@
-import 'package:drift/drift.dart' hide isNull;
-import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:memova/data/app_database.dart';
-import 'package:memova/data/providers.dart';
-import 'package:memova/main.dart';
 
-Future<AppDatabase> pumpApp(WidgetTester tester) async {
-  final db = AppDatabase(NativeDatabase.memory());
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [databaseProvider.overrideWithValue(db)],
-      child: const MemovaApp(),
-    ),
-  );
-  await tester.pumpAndSettle();
-  return db;
-}
+import 'helpers.dart';
 
-Future<void> seedMemo(
-  AppDatabase db,
-  String body,
-  DateTime updatedAt, {
-  DateTime? trashedAt,
-}) async {
-  await db.into(db.memos).insert(MemosCompanion.insert(
-        body: body,
-        createdAt: updatedAt,
-        updatedAt: updatedAt,
-        trashedAt: Value(trashedAt),
-      ));
-}
-
+/// Opens search from the List app bar and settles the route transition.
 Future<void> openSearch(WidgetTester tester) async {
   await tester.tap(find.byTooltip('Search'));
   await tester.pumpAndSettle();

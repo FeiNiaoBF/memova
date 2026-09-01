@@ -1,30 +1,7 @@
-import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:memova/data/app_database.dart';
-import 'package:memova/data/providers.dart';
-import 'package:memova/main.dart';
 
-Future<AppDatabase> pumpApp(WidgetTester tester) async {
-  final db = AppDatabase(NativeDatabase.memory());
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [databaseProvider.overrideWithValue(db)],
-      child: const MemovaApp(),
-    ),
-  );
-  await tester.pumpAndSettle();
-  return db;
-}
-
-Future<void> seedMemo(AppDatabase db, String body, DateTime updatedAt) async {
-  await db.into(db.memos).insert(MemosCompanion.insert(
-        body: body,
-        createdAt: updatedAt,
-        updatedAt: updatedAt,
-      ));
-}
+import 'helpers.dart';
 
 void main() {
   testWidgets('tapping a memo opens the editor pre-filled; editing moves it '

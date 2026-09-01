@@ -1,24 +1,8 @@
-import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memova/data/app_database.dart';
-import 'package:memova/data/providers.dart';
-import 'package:memova/main.dart';
 
-Future<AppDatabase> pumpApp(WidgetTester tester) async {
-  final db = AppDatabase(NativeDatabase.memory());
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [databaseProvider.overrideWithValue(db)],
-      child: const MemovaApp(),
-    ),
-  );
-  await tester.pumpAndSettle();
-  return db;
-}
-
+import 'helpers.dart';
 Future<void> openEditor(WidgetTester tester) async {
   await tester.tap(find.byType(FloatingActionButton));
   // Drive the route transition with fixed pumps. pumpAndSettle is banned
@@ -26,11 +10,6 @@ Future<void> openEditor(WidgetTester tester) async {
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 350));
 }
-
-/// Direct query — the database is the test seam, no stream needed in tests.
-Future<List<Memo>> allMemos(AppDatabase db) =>
-    (db.select(db.memos)..orderBy([(m) => OrderingTerm.desc(m.updatedAt)]))
-        .get();
 
 void main() {
   testWidgets('FAB opens an empty editor focused on the body', (tester) async {
@@ -46,13 +25,12 @@ void main() {
     await db.close();
   });
 
-  testWidgets('typing persists the memo after the debounce', (tester) async {
+  testWidgets('typing persists the memo to the database', (tester) async {
     final db = await pumpApp(tester);
 
     await openEditor(tester);
     await tester.enterText(find.byType(TextField), 'hello memo');
-    await tester.pump(const Duration(milliseconds: 500)); // debounce fires
-    await tester.pump(); // let the async write complete
+    await tester.pump();
 
     final memos = await allMemos(db);
     expect(memos.map((m) => m.body), ['hello memo']);
@@ -61,6 +39,26 @@ void main() {
     // written is still open hangs under FakeAsync (drift internal timing).
     // Popping first is also the real user flow.
     await tester.pageBack();
+    await tester.pumpAndSettle();
+    await db.close();
+  });
+
+  testWidgets('every keystroke persists immediately, with no close or flush',
+      (tester) async {
+    // User story 6: an interruption must never cost a thought. The write must
+    // land at keystroke time, not on close — on a real device that write is
+    // already in the SQLite file, so a process kill mid-typing loses nothing.
+    // (close()'s only remaining job is cleaning up empty drafts.)
+    final db = await pumpApp(tester);
+
+    await openEditor(tester);
+    await tester.enterText(find.byType(TextField), 'don\'t lose me');
+    await tester.pump(); // let the write land
+
+    final memos = await allMemos(db);
+    expect(memos.map((m) => m.body), ['don\'t lose me']);
+
+    await tester.pageBack(); // close() runs, but it isn't what persisted
     await tester.pumpAndSettle();
     await db.close();
   });

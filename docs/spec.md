@@ -43,7 +43,7 @@ Memova: a local-first Android memo app. Open it and a single-column List of plai
 - Persistence: Drift (SQLite) — ADR-0001. One `memos` table: `id`, `body`, `createdAt`, `updatedAt`, `trashedAt` (nullable; null = live memo). Timestamps managed by the data layer.
 - State: Riverpod — ADR-0002. Drift's reactive `Stream`s feed providers; the UI never holds business state and never issues SQL.
 - Architecture: feature-first modules with three rules — code grouped by feature under the feature directory; data access only via the data layer (Drift DAO); state only via providers. No repository interface, no use-case layer, no domain entity layer: Drift's in-memory database (`NativeDatabase.memory()`) is the single test seam, so fakes are unnecessary. If cloud sync ever happens, the repository seam is introduced that day (ADR-0004).
-- Auto-save: the editor debounces (~500 ms) writes to the database; a Memo row is only created after the first character is typed.
+- Auto-save: every keystroke writes through to the database immediately (no debounce — a local SQLite write is cheap, and user story 6, draft survival, outranks write batching). Writes are serialized so fast typing can't race row creation. A Memo row is created only after the first character is typed; closing an empty editor deletes the draft row.
 - Trash: deleting sets `trashedAt`; purge runs on app start, removing Memos trashed more than 30 days ago.
 - Search: case-insensitive substring match on `body` over live Memos.
 
