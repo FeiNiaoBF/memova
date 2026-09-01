@@ -159,4 +159,27 @@ void main() {
     expect(trashed.map((m) => m.body), ['recent trash']);
     expect(live.map((m) => m.body), ['live']);
   });
+
+  test('watchLiveMemos with a query filters case-insensitively, anywhere '
+      'in the body, live memos only', () async {
+    await insertMemo('Buy milk and bread', updatedAt: DateTime(2026, 1, 1, 8));
+    await insertMemo('MILK alternatives', updatedAt: DateTime(2026, 1, 1, 9));
+    await insertMemo('unrelated', updatedAt: DateTime(2026, 1, 1, 10));
+    await insertMemo(
+      'trashed milk',
+      updatedAt: DateTime(2026, 1, 1, 11),
+      trashedAt: DateTime(2026, 1, 2),
+    );
+
+    // Case-insensitive (matches 'Buy milk' and 'MILK alternatives'),
+    // anywhere in the body, excludes trashed memos.
+    final results =
+        await db.memosDao.watchLiveMemos(query: 'milk').first;
+    expect(results.map((m) => m.body), ['MILK alternatives', 'Buy milk and bread']);
+
+    // Empty query returns everything live, newest first.
+    final all = await db.memosDao.watchLiveMemos().first;
+    expect(all.map((m) => m.body),
+        ['unrelated', 'MILK alternatives', 'Buy milk and bread']);
+  });
 }

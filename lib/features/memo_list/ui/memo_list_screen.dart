@@ -3,24 +3,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/app_database.dart';
 import '../../../data/providers.dart';
+import '../../../shared/relative_time.dart';
 import '../../memo_editor/memo_editor_providers.dart';
 import '../../memo_editor/ui/memo_editor_screen.dart';
 import '../../trash/ui/trash_screen.dart';
 import '../memo_list_providers.dart';
-import '../../../shared/relative_time.dart';
 
-/// The home screen: live memos, newest-updated first (user stories 1-2).
+/// The home screen: live memos, newest-updated first (user stories 1-2),
+/// with a searchable app bar (#7).
 class MemoListScreen extends ConsumerWidget {
   const MemoListScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final memosAsync = ref.watch(liveMemosProvider);
+    final query = ref.watch(searchQueryProvider);
+    final searching = query.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Memova'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: 'Search',
+            onPressed: () => _openSearch(context, ref),
+          ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
             tooltip: 'Trash',
@@ -36,8 +44,7 @@ class MemoListScreen extends ConsumerWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (_) =>
-                  const MemoEditorScreen(args: MemoEditorArgs()),
+              builder: (_) => const MemoEditorScreen(args: MemoEditorArgs()),
             ),
           );
         },
@@ -45,8 +52,58 @@ class MemoListScreen extends ConsumerWidget {
         child: const Icon(Icons.add),
       ),
       body: memosAsync.when(
+        data: (memos) => memos.isEmpty
+            ? (searching ? const _NoResults() : const _EmptyState())
+            : _MemoList(memos: memos),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) =>
+            Center(child: Text('Something went wrong: $error')),
+      ),
+    );
+  }
+
+  /// Pushes a full-screen search route (search field + filtered list).
+  void _openSearch(BuildContext context, WidgetRef ref) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const SearchScreen(),
+      ),
+    );
+  }
+}
+
+/// Full-screen search: a field on top, the live-filtered List below (#7).
+class SearchScreen extends ConsumerWidget {
+  const SearchScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final query = ref.watch(searchQueryProvider);
+    final memosAsync = ref.watch(liveMemosProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: TextField(
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Search memos',
+            border: InputBorder.none,
+          ),
+          onChanged: (value) =>
+              ref.read(searchQueryProvider.notifier).update(value),
+        ),
+        actions: [
+          if (query.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              tooltip: 'Clear search',
+              onPressed: () => ref.read(searchQueryProvider.notifier).update(''),
+            ),
+        ],
+      ),
+      body: memosAsync.when(
         data: (memos) =>
-            memos.isEmpty ? const _EmptyState() : _MemoList(memos: memos),
+            memos.isEmpty ? const _NoResults() : _MemoList(memos: memos),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) =>
             Center(child: Text('Something went wrong: $error')),
@@ -171,6 +228,37 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Your memos will appear here.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A search query matched nothing (user story 18/19).
+class _NoResults extends StatelessWidget {
+  const _NoResults();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 64,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No memos match',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Try a different search.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],

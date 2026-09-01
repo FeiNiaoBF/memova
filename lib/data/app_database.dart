@@ -42,12 +42,17 @@ class MemosDao extends DatabaseAccessor<AppDatabase> with _$MemosDaoMixin {
   /// Live (non-trashed) memos, newest-updated first, as a reactive stream.
   ///
   /// `.watch()` re-emits whenever the `memos` table changes, so the UI
-  /// stays in sync without any manual refresh.
-  Stream<List<Memo>> watchLiveMemos() {
-    return (select(memos)
-          ..where((m) => m.trashedAt.isNull())
-          ..orderBy([(m) => OrderingTerm.desc(m.updatedAt)]))
-        .watch();
+  /// stays in sync without any manual refresh. An optional [query] filters
+  /// to memos whose body contains it, case-insensitively and anywhere in
+  /// the text — the search behaviour of ticket #7.
+  Stream<List<Memo>> watchLiveMemos({String? query}) {
+    final statement = select(memos)
+      ..where((m) => m.trashedAt.isNull())
+      ..orderBy([(m) => OrderingTerm.desc(m.updatedAt)]);
+    if (query != null && query.isNotEmpty) {
+      statement.where((m) => m.body.lower().contains(query.toLowerCase()));
+    }
+    return statement.watch();
   }
 
   /// Creates a memo from its body and returns the new row id.
