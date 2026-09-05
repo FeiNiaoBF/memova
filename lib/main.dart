@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'data/app_database.dart';
 import 'data/providers.dart';
 import 'features/memo_list/ui/memo_list_screen.dart';
+import 'theme/themes.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +23,8 @@ Future<void> main() async {
   );
 }
 
-/// Root of the app. Theming follows the system (Material 3, light + dark).
+/// Root of the app. Theming follows the system (Material 3, light + dark);
+/// 黛绿 seed with a 朱红 error role (see theme/themes.dart).
 class MemovaApp extends StatelessWidget {
   const MemovaApp({super.key});
 
@@ -30,17 +32,8 @@ class MemovaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Memova',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: memovaTheme(Brightness.light),
+      darkTheme: memovaTheme(Brightness.dark),
       themeMode: ThemeMode.system,
       home: const MemoListScreen(),
     );

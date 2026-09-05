@@ -58,11 +58,20 @@ class MemosDao extends DatabaseAccessor<AppDatabase> with _$MemosDaoMixin {
   /// Creates a memo from its body and returns the new row id.
   ///
   /// Timestamps are owned by the data layer (spec: "timestamps managed by
-  /// the data layer"), never by callers.
-  Future<int> createMemo(String body) {
+  /// the data layer"): they default to now. [createdAt]/[updatedAt] only
+  /// exist for demo seeding and tests that must pin time.
+  Future<int> createMemo(
+    String body, {
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
     final now = DateTime.now();
     return into(memos).insert(
-      MemosCompanion.insert(body: body, createdAt: now, updatedAt: now),
+      MemosCompanion.insert(
+        body: body,
+        createdAt: createdAt ?? now,
+        updatedAt: updatedAt ?? now,
+      ),
     );
   }
 

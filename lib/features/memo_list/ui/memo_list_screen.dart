@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/app_database.dart';
 import '../../../data/providers.dart';
+import '../../../dev/theme_gallery_screen.dart';
 import '../../../shared/relative_time.dart';
 import '../../memo_editor/memo_editor_providers.dart';
 import '../../memo_editor/ui/memo_editor_screen.dart';
@@ -24,6 +26,16 @@ class MemoListScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Memova'),
         actions: [
+          if (kDebugMode)
+            IconButton(
+              icon: const Icon(Icons.palette_outlined),
+              tooltip: 'Theme preview',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const ThemeGalleryScreen(),
+                ),
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.search),
             tooltip: 'Search',
