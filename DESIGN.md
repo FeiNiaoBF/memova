@@ -136,6 +136,17 @@ Material defaults, no glass, no gradients.
   were rejected: memova has no tags/colors (Keep) and is not a fragment feed
   (flomo). The earlier editorial/flat-row exploration was superseded by this
   research-grounded choice. Swipe-left (Dismissible) deletes.
+- **Time presentation (confirmed 2026-09, research-driven):** the list is
+  grouped by **date landmarks** — 今天 (with the real date + weekday), 昨天,
+  then real dates (`8月22日 周六`) — never vague buckets like "更早".
+  Rationale: memory reconstructs when-things-happened from landmarks,
+  chronology and context, not precise clocks (Nature Rev. Psychol. 2025
+  temporal-cognition review; Risko & Gilbert 2016; Gilbert et al. 2023).
+  Timestamps are **hybrid**: within 24h rows show relative time (刚才 /
+  3小时前); beyond 24h the date lives at the group anchor and row-level time
+  is dropped (redundant). Graphic timeline rails were rejected (no research
+  support; Gantt-chart risk). Code impact: `relativeTime()` becomes hybrid,
+  list gains date-group headers.
 - **Delete / undo:** swiping moves the memo to Trash (sets `trashedAt`), then a
   **floating** SnackBar offers Undo. The destructive surface is the 朱红 error
   color. Undo restores the memo *unchanged* (updatedAt untouched).
@@ -149,6 +160,15 @@ Material defaults, no glass, no gradients.
   ships in release.
 
 ## Do's and Don'ts
+
+### Deferred tuning checklist（全局微调轮的清单 —— 结构全部锁完后集中做）
+
+- 字级逐项过：列表行/时间戳/空态/编辑器的字号与行高是否统一节奏
+- 颜色应用逐项过：onSurfaceVariant / outline 的使用场景是否一致，时间戳颜色深浅
+- 间距节奏：组与组、行与行、屏幕边缘
+- 明暗两套逐项对照
+
+### General
 
 - Do keep the M3 algorithm as the single source of truth: change the **seed or
   variant**, never hand-replace the derived palette role by role.
