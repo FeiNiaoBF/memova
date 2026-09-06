@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../memo_editor_providers.dart';
 
-/// A title-less editor (ADR-0003). Fresh when opened without a memo;
-/// pre-filled when editing an existing one. Typing auto-saves after a
-/// debounce; closing flushes the pending write and cleans up empty drafts.
+/// The writing surface (DESIGN.md #4): a bare full-bleed text field —
+/// Deference, borders zeroed — plus a quiet save-state line that makes the
+/// write-through guarantee *perceivable* (confidence before offloading).
 class MemoEditorScreen extends ConsumerStatefulWidget {
   const MemoEditorScreen({super.key, required this.args});
 
@@ -36,9 +36,8 @@ class _MemoEditorScreenState extends ConsumerState<MemoEditorScreen> {
   Widget build(BuildContext context) {
     // Watch (not just read): autoDispose providers are disposed when they
     // have no listeners — read alone does not subscribe, so the session
-    // would be disposed after the first frame. Watching keeps it alive for
-    // exactly this screen's lifetime.
-    ref.watch(memoEditorProvider(widget.args));
+    // would be disposed after the first frame.
+    final state = ref.watch(memoEditorProvider(widget.args));
     final notifier = ref.read(memoEditorProvider(widget.args).notifier);
 
     return PopScope(
@@ -48,24 +47,39 @@ class _MemoEditorScreenState extends ConsumerState<MemoEditorScreen> {
         await _closeAndPop();
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: BackButton(onPressed: _closeAndPop),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
-            controller: _controller,
-            autofocus: true,
-            maxLines: null,
-            expands: true,
-            textAlignVertical: TextAlignVertical.top,
-            keyboardType: TextInputType.multiline,
-            decoration: const InputDecoration(
-              hintText: 'Start typing…',
-              border: InputBorder.none,
+        appBar: AppBar(leading: BackButton(onPressed: _closeAndPop)),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 2, 20, 6),
+              child: Text(
+                state.saveState == EditorSaveState.saved ? '已保存' : '保存中…',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+              ),
             ),
-            onChanged: notifier.onBodyChanged,
-          ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+                child: TextField(
+                  controller: _controller,
+                  autofocus: true,
+                  maxLines: null,
+                  expands: true,
+                  textAlignVertical: TextAlignVertical.top,
+                  keyboardType: TextInputType.multiline,
+                  style: const TextStyle(fontSize: 18, height: 1.75),
+                  decoration: const InputDecoration(
+                    hintText: '写点什么…',
+                    border: InputBorder.none,
+                  ),
+                  onChanged: notifier.onBodyChanged,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

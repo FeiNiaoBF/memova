@@ -48,9 +48,9 @@ void main() {
 
     // Gone from the List immediately, with an Undo affordance.
     expect(find.text('doomed memo'), findsNothing);
-    expect(find.text('Undo'), findsOneWidget);
+    expect(find.text('撤销'), findsOneWidget);
 
-    await tester.tap(find.text('Undo'));
+    await tester.tap(find.text('撤销'));
     await tester.pumpAndSettle();
 
     // Back, unchanged.

@@ -26,3 +26,4 @@ final liveMemosProvider = StreamProvider<List<Memo>>((ref) {
   final query = ref.watch(searchQueryProvider);
   return ref.watch(databaseProvider).memosDao.watchLiveMemos(query: query);
 });
+

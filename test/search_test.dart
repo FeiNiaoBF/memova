@@ -33,7 +33,7 @@ void main() {
     // Non-matching query shows the no-results state.
     await tester.enterText(find.byType(TextField), 'zzzz');
     await tester.pumpAndSettle();
-    expect(find.textContaining('No memos match'), findsOneWidget);
+    expect(find.textContaining('没有匹配的备忘'), findsOneWidget);
 
     // Clearing restores the full list.
     await tester.enterText(find.byType(TextField), '');

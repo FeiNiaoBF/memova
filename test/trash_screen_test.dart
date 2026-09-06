@@ -26,9 +26,9 @@ void main() {
 
     // Trashed memo listed with its trashed-at date; live memos absent.
     expect(find.text('in trash'), findsOneWidget);
-    expect(find.textContaining('2026-01-02'), findsOneWidget);
+    expect(find.textContaining('1月2日'), findsOneWidget);
     expect(find.text('live memo'), findsNothing);
-    expect(find.text('Trash'), findsOneWidget); // app bar title
+    expect(find.text('回收站'), findsOneWidget); // app bar title
 
     // Pop back so the autoDispose trash stream is released before close
     // (mirrors the single-stream invariant of the list tests).
@@ -53,7 +53,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Restore'));
+    await tester.tap(find.text('恢复'));
     await tester.pumpAndSettle();
 
     // Gone from the Trash, back on the List behind it.
@@ -80,7 +80,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Delete forever'));
+    await tester.tap(find.text('永久删除'));
     await tester.pumpAndSettle();
 
     expect(find.text('to delete forever'), findsNothing);
@@ -116,18 +116,18 @@ void main() {
     await openTrash(tester);
 
     // Cancel keeps everything.
-    await tester.tap(find.byTooltip('Empty trash'));
+    await tester.tap(find.byTooltip('清空回收站'));
     await tester.pumpAndSettle();
-    expect(find.text('Empty trash?'), findsOneWidget);
-    await tester.tap(find.text('Cancel'));
+    expect(find.text('清空回收站？'), findsOneWidget);
+    await tester.tap(find.text('取消'));
     await tester.pumpAndSettle();
     expect(find.text('trash one'), findsOneWidget);
     expect(find.text('trash two'), findsOneWidget);
 
     // Confirm purges everything.
-    await tester.tap(find.byTooltip('Empty trash'));
+    await tester.tap(find.byTooltip('清空回收站'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Empty'));
+    await tester.tap(find.text('清空'));
     await tester.pumpAndSettle();
     expect(find.text('trash one'), findsNothing);
     expect(find.text('trash two'), findsNothing);

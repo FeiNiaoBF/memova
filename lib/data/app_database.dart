@@ -105,6 +105,7 @@ class MemosDao extends DatabaseAccessor<AppDatabase> with _$MemosDaoMixin {
     );
   }
 
+
   /// Trashed memos, most-recently-trashed first, as a reactive stream.
   ///
   /// Powers the Trash screen (#6); the List's [watchLiveMemos] stays the

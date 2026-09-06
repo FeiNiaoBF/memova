@@ -31,7 +31,7 @@ void main() {
   testWidgets('with no memos, shows the empty state', (tester) async {
     final db = await pumpApp(tester);
 
-    expect(find.text('No memos yet'), findsOneWidget);
+    expect(find.text('写第一条'), findsOneWidget);
 
     await db.close();
   });
@@ -75,7 +75,7 @@ void main() {
         ));
     await tester.pumpAndSettle();
 
-    expect(find.text('5m ago'), findsOneWidget);
+    expect(find.text('5分钟前'), findsOneWidget);
 
     await db.close();
   });

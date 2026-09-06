@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+/// The device's system serif (AOSP ships NotoSerifCJK-Regular.ttc). Zero
+/// bundle size; if a device fails to resolve it, the sans fallback renders —
+/// graceful degradation (DESIGN.md: two-voice typography).
+const serifFontFamily = 'serif';
+
 /// Memova's theme — 黛绿 (dài lǜ, muted deep green, #3B7A57) as the seed.
 ///
 /// - Color: MD3 `tonalSpot` keeps 黛绿's restrained ink-green character
@@ -41,6 +46,16 @@ ThemeData memovaTheme(Brightness brightness) {
   return ThemeData(
     useMaterial3: true,
     colorScheme: colorScheme,
+    // Serif app-bar title (DESIGN.md two-voice typography — the identity
+    // accent; on-device probe pending).
+    appBarTheme: AppBarTheme(
+      titleTextStyle: TextStyle(
+        fontFamily: serifFontFamily,
+        fontSize: 22,
+        fontWeight: FontWeight.w500,
+        color: colorScheme.onSurface,
+      ),
+    ),
     // Modern M3 touch: the undo snackbar floats above the list instead of
     // pinning to the bottom edge.
     snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
