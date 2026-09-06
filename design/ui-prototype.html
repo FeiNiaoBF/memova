@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memova UI — #6 FAB 与按钮族</title>
+<style>
+  :root {
+    --primary:#296A48; --on-primary:#FFFFFF; --primary-container:#ADF2C6; --on-primary-container:#075232;
+    --secondary:#4E6355; --secondary-container:#D1E8D6; --on-secondary-container:#0F1F15; --tertiary:#3B6471;
+    --error:#BC3510; --on-error:#FFFFFF; --error-container:#FBD9D0; --on-error-container:#8D280C;
+    --surface:#F6FBF4; --surface-container-low:#F0F5EE; --surface-container:#EAEFE8; --surface-container-high:#E4EAE3;
+    --surface-container-highest:#DFE4DD; --on-surface:#171D19; --on-surface-variant:#404942;
+    --outline:#717972; --outline-variant:#C1C9C0;
+    --r-lg:16px; --r-full:999px;
+    --font-sans:"Roboto","Noto Sans SC",system-ui,sans-serif;
+    --page-bg:#E3E7E1; --frame-bezel:#1a1c19;
+  }
+  body[data-theme="dark"] {
+    --primary:#92D5AB; --on-primary:#003920; --primary-container:#075232; --on-primary-container:#ADF2C6;
+    --secondary:#B5CCBA; --secondary-container:#374B3E; --on-secondary-container:#D1E8D6; --tertiary:#A3CDDC;
+    --error:#F7B3A1; --on-error:#330E0B; --error-container:#8D280C; --on-error-container:#FBD9D0;
+    --surface:#0F1511; --surface-container-low:#171D19; --surface-container:#1B211D; --surface-container-high:#262B27;
+    --surface-container-highest:#313632; --on-surface:#DFE4DD; --on-surface-variant:#C0C9C0;
+    --outline:#8A938B; --outline-variant:#3F4840;
+    --page-bg:#0A0D0B; --frame-bezel:#0d100e;
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { font-family:var(--font-sans); background:var(--page-bg); color:var(--on-surface); padding:24px 20px; }
+  .hdr { max-width:1240px; margin:0 auto 20px; display:flex; align-items:center; gap:14px; }
+  .hdr h1 { font-size:18px; font-weight:600; }
+  .hdr .tag { font-size:12px; color:var(--on-surface-variant); }
+  button.theme { font-family:inherit; font-size:13px; font-weight:500; padding:8px 14px; border-radius:999px; border:1px solid var(--outline); background:transparent; color:var(--on-surface); cursor:pointer; margin-left:auto; }
+  .stage { max-width:1240px; margin:0 auto; display:flex; gap:32px; flex-wrap:wrap; justify-content:center; align-items:flex-start; }
+  .frame { flex:0 0 auto; display:flex; flex-direction:column; }
+  .frame .fcap { text-align:center; font-size:13px; font-weight:600; padding-bottom:10px; }
+  .frame .fcap small { display:block; font-weight:400; font-size:11.5px; color:var(--on-surface-variant); margin-top:2px; }
+  .frame .view { width:380px; background:var(--surface); border-radius:38px; box-shadow:0 8px 40px rgba(0,0,0,.35),0 0 0 8px var(--frame-bezel); overflow:hidden; display:flex; flex-direction:column; }
+  .statusbar { height:28px; padding:5px 22px 0; font-size:12px; font-weight:500; display:flex; justify-content:space-between; flex:0 0 auto; }
+  .screen { padding:4px 0 20px; }
+  .ic { width:24px; height:24px; display:block; } .ic path { fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+  .cap { font-size:11px; letter-spacing:.04em; color:var(--outline); padding:16px 20px 6px; }
+
+  /* FAB 两种形状对比 */
+  .fabrow { display:flex; gap:28px; align-items:flex-end; padding:8px 20px 14px; }
+  .fabcol { display:flex; flex-direction:column; gap:6px; align-items:center; }
+  .fab { width:56px; height:56px; border:none; background:var(--primary); color:var(--on-primary); font-size:26px; box-shadow:0 4px 12px rgba(0,0,0,.25); display:grid; place-items:center; cursor:pointer; }
+  .fab.sq { border-radius:var(--r-lg); }
+  .fab.ci { border-radius:var(--r-full); }
+  .fablabel { font-size:11px; color:var(--on-surface-variant); }
+
+  /* 按钮族 */
+  .btn { font-family:inherit; font-size:14px; font-weight:500; padding:10px 22px; border-radius:var(--r-full); cursor:pointer; border:none; letter-spacing:.02em; }
+  .btn-fill { background:var(--primary); color:var(--on-primary); }
+  .btn-tonal { background:var(--secondary-container); color:var(--on-secondary-container); }
+  .btn-outline { background:transparent; color:var(--primary); border:1px solid var(--outline); }
+  .btn-text { background:transparent; color:var(--primary); padding:10px 12px; }
+  .btn-error { background:var(--error); color:var(--on-error); }
+  .brow { display:flex; gap:8px; padding:6px 20px; flex-wrap:wrap; align-items:center; }
+  .buse { padding:2px 20px 10px; }
+  .buse li { font-size:12px; line-height:1.7; color:var(--on-surface-variant); list-style:none; }
+  .buse b { color:var(--on-surface); font-weight:600; }
+  .statelab { font-size:10.5px; color:var(--outline); }
+
+  .aside { max-width:1240px; margin:28px auto 0; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; }
+  .card { background:var(--surface-container-low); border-radius:12px; padding:16px; }
+  .card h2 { font-size:14px; margin-bottom:8px; }
+  .card p,.card li { font-size:12.5px; line-height:1.7; color:var(--on-surface-variant); }
+  .card ul { padding-left:18px; } .card b { color:var(--on-surface); }
+</style>
+</head>
+<body data-theme="light">
+<div class="hdr">
+  <h1>Memova · #6 FAB 与按钮族</h1><span class="tag">形状裁定 + 五态用法表</span>
+  <button class="theme" onclick="toggleTheme()">明暗</button>
+</div>
+<div class="stage">
+
+  <!-- FAB 形状 -->
+  <div class="frame"><div class="fcap">FAB · 两种形状<small>M3 默认 16px 圆角方 vs 全圆</small></div>
+    <div class="view"><div class="statusbar"><span>9:41</span><span>▮▮▮ ▮▮▮ ▮</span></div><div class="screen">
+      <div class="cap">同一位置 · 同一颜色 · 只差圆角</div>
+      <div class="fabrow">
+        <div class="fabcol"><button class="fab sq">＋</button><span class="fablabel">A · 16px 圆角方（M3 默认）</span></div>
+        <div class="fabcol"><button class="fab ci">＋</button><span class="fablabel">B · 全圆（M2 习惯）</span></div>
+      </div>
+      <div class="cap">按压状态（M3 state layer 演示）</div>
+      <div class="fabrow">
+        <div class="fabcol"><button class="fab sq" style="filter:brightness(1.12)">＋</button><span class="fablabel">hover +12% 亮度</span></div>
+        <div class="fabcol"><button class="fab sq" style="filter:brightness(.9)">＋</button><span class="fablabel">pressed −10%</span></div>
+      </div>
+      <div class="cap">按钮族（memova 实际用到的五态）</div>
+      <div class="brow">
+        <button class="btn btn-fill">写第一条</button>
+        <button class="btn btn-tonal">去回收站看看</button>
+      </div>
+      <div class="brow">
+        <button class="btn btn-outline">取消</button>
+        <button class="btn btn-text">撤销</button>
+        <button class="btn btn-error">清空</button>
+      </div>
+      <div class="buse">
+        <li><b>fill</b> — 新建/写第一条：全屏唯一 primary 动作</li>
+        <li><b>tonal</b> — 去回收站看看：次级导航性动作（非 create 语义不用 primary）</li>
+        <li><b>outline</b> — 对话框取消：与破坏性按钮并排时的安全侧</li>
+        <li><b>text</b> — 撤销条上的 Undo：最低视觉重量的动作</li>
+        <li><b>error</b> — 清空回收站：朱红只做毁灭</li>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 用法表 -->
+  <div class="frame"><div class="fcap">按钮在 memova 里的出现位置<small>每个态都有确定的岗位</small></div>
+    <div class="view"><div class="statusbar"><span>9:41</span><span>▮▮▮ ▮▮▮ ▮</span></div><div class="screen">
+      <div class="cap">列表屏</div>
+      <div class="brow"><button class="btn btn-fill">＋ FAB</button><span class="statelab">右下 · 唯一</span></div>
+      <div class="cap">空态（首启）</div>
+      <div class="brow"><button class="btn btn-fill">写第一条</button><span class="statelab">与 FAB 同动作</span></div>
+      <div class="cap">空态（回收站非空）</div>
+      <div class="brow"><button class="btn btn-tonal">去回收站看看</button></div>
+      <div class="cap">撤销条</div>
+      <div class="brow" style="background:var(--surface-container-high);margin:0 20px;border-radius:8px;padding:4px 8px;justify-content:space-between">
+        <span style="font-size:13px">已移到回收站</span><button class="btn btn-text" style="color:var(--primary)">撤销</button>
+      </div>
+      <div class="cap">清空回收站对话框</div>
+      <div class="brow">
+        <button class="btn btn-outline">取消</button>
+        <button class="btn btn-error">清空</button>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<div class="aside">
+  <div class="card"><h2>FAB 形状怎么选</h2>
+    <ul><li><b>A 16px 圆角方</b>：M3 官方 FAB 形状，与卡片 12px 的形状语言同族 —— 选它就是选"系统原生"</li>
+    <li><b>B 全圆</b>：M2 时代的习惯，很多 app 仍用，但它是"旧 Material"的信号</li>
+    <li>推荐 <b>A</b>：我们承诺过 MD3 native，形状语言一致</li></ul>
+  </div>
+  <div class="card"><h2>状态层（States communicate）</h2>
+    <p>FAB/按钮 hover +12%、pressed −10% 亮度 —— M3 的 state layer 机制，Flutter 里 Material 组件自带，无需手写。触区 ≥48dp。</p>
+  </div>
+  <div class="card"><h2>设计日志</h2>
+    <ul><li>✅ #1 行 · ✅ #2 顶栏 · ✅ #3 时间 · ✅ #4 编辑器 · ✅ #5 空态</li><li>⏳ #6 FAB+按钮族 ← 现在</li><li>之后：#7 删除撤销+对话框 → 微调轮</li></ul>
+  </div>
+</div>
+<script>
+  function toggleTheme(){ document.body.dataset.theme = document.body.dataset.theme==='light'?'dark':'light'; }
+</script>
+</body>
+</html>

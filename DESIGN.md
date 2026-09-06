@@ -125,8 +125,20 @@ Material defaults, no glass, no gradients.
   actions are precise line icons (search, trash) at one 1.7px stroke weight,
   44dp touch targets. Rejected: surface-container tint (B) — a memo list stays
   short enough that a scroll anchor isn't worth the added chrome.
-- **FAB (primary):** the only primary-color action — creating a memo. Never
-  more than one.
+- **FAB (primary, confirmed 2026-09):** the only primary-color action — creating
+  a memo. Never more than one. Shape: **16px rounded square** (M3 official FAB
+  shape, same family as the 12px cards; full-circle is an M2 habit and reads
+  as "old Material"). Position: bottom-right — the natural thumb zone (49% of
+  users hold phones one-thumbed; Hoober's 1333-user field study). Touch
+  targets ≥48dp (Fitts); icon-button min raised from 44 to 48dp.
+- **Buttons — five states, five jobs (confirmed 2026-09):** the M3 emphasis
+  hierarchy maps to fixed roles: `filled` = the single primary/final action
+  per screen (写第一条); `tonal` = secondary, non-create actions (去回收站看看);
+  `outlined` = the safe side of a destructive dialog (取消); `text` = lowest-
+  weight actions (Undo in the snackbar); `error` = destruction only (清空).
+  The `elevated` variant is deliberately unused. Every tappable gets M3 state
+  layers — hovered 8%, focused/pressed 10% foreground overlay (verified in the
+  Flutter SDK) — for free from Material components; never hand-roll them.
 - **List rows — MemoRow (confirmed 2026-09):** an M3 **two-line list**
   idiom (Apple Notes family): the body's first line renders **semibold
   (titleMedium) as the implicit title** — the visual answer to "no titles"
@@ -147,12 +159,34 @@ Material defaults, no glass, no gradients.
   is dropped (redundant). Graphic timeline rails were rejected (no research
   support; Gantt-chart risk). Code impact: `relativeTime()` becomes hybrid,
   list gains date-group headers.
+- **Empty state (confirmed 2026-09, two contexts):**
+  - *First launch / fully emptied* (list empty + trash empty): a typographic
+    declaration — 「想到，就写下来。」(display, 黛绿 emphasis on 写下来) + the
+    three refusals recast as promises (无标题/无分类/无网络 → they are
+    commitments, not missing features) + a filled-primary CTA 「写第一条」
+    (duplicates the FAB action — acceptable; NN/g: first-use empty states are
+    onboarding opportunities with a clear next action). No illustrations.
+  - *List empty but Trash has content*: 「都还在。」 + a tonal (secondary
+    container) button 「去回收站看看」 — deliberately NOT primary: it is not a
+    create action. This state protects against the "did I lose everything?"
+    misreading and surfaces the recovery path.
+  - Context rule: the empty state switches on trash content, not on a
+    first-run flag — zero new state needed (watchTrashedMemos already knows).
 - **Delete / undo:** swiping moves the memo to Trash (sets `trashedAt`), then a
   **floating** SnackBar offers Undo. The destructive surface is the 朱红 error
   color. Undo restores the memo *unchanged* (updatedAt untouched).
 - **Destructive confirmation:** emptying the Trash goes through an AlertDialog
   with a Cancel / Empty split. Dialog chrome uses error roles, not primary.
-- **Editor:** a bare TextField, autofocus, no chrome; auto-saves.
+- **Editor (confirmed 2026-09):** a bare full-bleed writing surface (17px/1.75,
+  no borders, no container — Deference/CLT), autofocus, **plus a quiet save
+  state line** (`已保存` with a small primary dot, 11px) under the app bar.
+  Rationale: cognitive offloading is governed by **confidence in the external
+  store** (Boldt & Gilbert 2019) — the write-through queue guarantees the
+  save, but an invisible guarantee doesn't earn the trust people need before
+  they stop re-checking; the save line is germane feedback (flow's
+  immediate-feedback condition), not extraneous chrome. A card-style editor
+  surface was rejected: a decorative container adds extraneous load and breaks
+  continuity with the list's flat rows.
 - **Empty state:** icon + two lines, in primary/secondary — informational, not
   decorative.
 - **Debug tooling:** a theme gallery (color roles, type, buttons, dialogs,
