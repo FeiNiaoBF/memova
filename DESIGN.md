@@ -101,16 +101,33 @@ from the algorithm).
 
 ## Typography
 
-Material 3 type scale with system fonts (Roboto / Noto Sans CJK on Android).
-No custom family yet — this is an **open decision**. Body text is the hero of
-the app; the list renders the memo's first line as plain body text with
-ellipsis, never as a styled card.
+**Fonts — two-voice system (confirmed 2026-09):**
+
+- **Sans (default):** system `Noto Sans CJK` / Roboto for everything functional
+  — rows, previews, timestamps, buttons, editor text (17→**18px**/1.75 tuned).
+- **Serif (accent, system):** the device's system serif (AOSP ships
+  `NotoSerifCJK-Regular.ttc`; accessed via `fontFamily: 'serif'` with a sans
+  fallback chain — **zero bundle size**) for exactly two identity moments: the
+  empty-state declaration 「想到，就写下来。」 and the app bar title. Serif = the
+  writing semantics; it never touches functional text (small-size CJK serif
+  readability is a red line). If a device fails to resolve the system serif,
+  the fallback renders sans — graceful, zero-cost degradation.
+- **Sizes (tuned):** group date 13→**14** (anchor presence); editor 17→**18**
+  (writing comfort). Everything else per the M3 scale in the token block.
 
 ## Layout
 
 A single-column list, newest-updated first, full-bleed on the phone. One
-primary action per screen (the FAB — *write*). Spacing follows Material 3
-defaults; density leans slightly roomy so text rows breathe.
+primary action per screen (the FAB — *write*). Spacing rhythm (tokens):
+screen edge 20px; row vertical 12px; group header top 16px (first 10px);
+app bar 56px; FAB margins 16px; **list bottom clearance 96px** (last row must
+never hide under the FAB).
+
+**Component logic rules:** the top bar is fixed (no scroll-under overlap);
+groups follow `updatedAt` (an old memo edited today joins 今天 — consistent
+with newest-first); search results render as a flat list (no landmark groups —
+search is finding, not reminiscing); the Trash renders flat, sorted by
+trashedAt.
 
 ## Elevation & Depth
 
@@ -172,11 +189,16 @@ Material defaults, no glass, no gradients.
     misreading and surfaces the recovery path.
   - Context rule: the empty state switches on trash content, not on a
     first-run flag — zero new state needed (watchTrashedMemos already knows).
-- **Delete / undo:** swiping moves the memo to Trash (sets `trashedAt`), then a
-  **floating** SnackBar offers Undo. The destructive surface is the 朱红 error
-  color. Undo restores the memo *unchanged* (updatedAt untouched).
-- **Destructive confirmation:** emptying the Trash goes through an AlertDialog
-  with a Cancel / Empty split. Dialog chrome uses error roles, not primary.
+- **Delete / undo (confirmed 2026-09, with confirmation policy):** swiping
+  moves the memo to Trash (sets `trashedAt`) — **no confirmation**, a floating
+  SnackBar offers Undo (4s, text button). Restoring restores *unchanged*
+  (updatedAt untouched). Single-memo **Delete forever does NOT confirm**: the
+  trash itself is the safety buffer, the two-step menu is already friction,
+  and the 30-day purge would delete it anyway. **Exactly one confirmation
+  exists in the whole app** — emptying the Trash — because habituation
+  research shows confirmations lose their power when overused (81% of users
+  click through similar dialogs). Dialog copy must be **specific** (state the
+  count: "2 条备忘"), never vague. Dialog chrome uses error roles, not primary.
 - **Editor (confirmed 2026-09):** a bare full-bleed writing surface (17px/1.75,
   no borders, no container — Deference/CLT), autofocus, **plus a quiet save
   state line** (`已保存` with a small primary dot, 11px) under the app bar.

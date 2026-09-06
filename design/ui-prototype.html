@@ -3,66 +3,112 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Memova UI — #6 FAB 与按钮族</title>
+<title>Memova UI — 微调轮（归一后的终装态）</title>
 <style>
+  /* ══════ 终版 tokens：全部归一，与 DESIGN.md 同步 ══════ */
   :root {
     --primary:#296A48; --on-primary:#FFFFFF; --primary-container:#ADF2C6; --on-primary-container:#075232;
     --secondary:#4E6355; --secondary-container:#D1E8D6; --on-secondary-container:#0F1F15; --tertiary:#3B6471;
     --error:#BC3510; --on-error:#FFFFFF; --error-container:#FBD9D0; --on-error-container:#8D280C;
-    --surface:#F6FBF4; --surface-container-low:#F0F5EE; --surface-container:#EAEFE8; --surface-container-high:#E4EAE3;
+    --surface:#F6FBF4; --surface-container-lowest:#FFFFFF;
+    --surface-container-low:#F0F5EE; --surface-container:#EAEFE8; --surface-container-high:#E4EAE3;
     --surface-container-highest:#DFE4DD; --on-surface:#171D19; --on-surface-variant:#404942;
     --outline:#717972; --outline-variant:#C1C9C0;
-    --r-lg:16px; --r-full:999px;
+    --inverse-surface:#2C322D; --on-inverse-surface:#E0E5DE; --inverse-primary:#92D5AB;
+    /* 形状 */
+    --r-fab:16px; --r-card:12px; --r-dialog:28px; --r-full:999px;
+    /* 字级（归一终版） */
+    --t-appbar:22px/28px 500;      /* titleLarge */
+    --t-rowtitle:16px/22px 500;    /* titleMedium */
+    --t-preview:13px/18px 400;     /* bodySm+ 自定义 */
+    --t-time:11px/16px 400;        /* labelSmall + tabular */
+    --t-gdate:14px/20px 600;       /* 组锚日期（13→14 已裁） */
+    --t-gweek:11px/16px 400;       /* 组锚星期 */
+    --t-editor:18px/31px 400;      /* editorLarge 自定义（17→18 已裁） */
+    --t-dlgtitle:24px/32px 400;    /* headlineSmall */
+    --t-dlgbody:14px/22px 400;     /* bodyMedium */
+    --t-btn:14px/20px 500;         /* labelLarge */
+    --t-saved:11px/16px 400;
     --font-sans:"Roboto","Noto Sans SC",system-ui,sans-serif;
+    --font-serif:"Noto Serif SC","Source Han Serif SC","SimSun",serif; /* 真机上 = 系统 NotoSerifCJK */
+    --sp-edge:20px; --sp-row-v:12px;
     --page-bg:#E3E7E1; --frame-bezel:#1a1c19;
   }
   body[data-theme="dark"] {
     --primary:#92D5AB; --on-primary:#003920; --primary-container:#075232; --on-primary-container:#ADF2C6;
     --secondary:#B5CCBA; --secondary-container:#374B3E; --on-secondary-container:#D1E8D6; --tertiary:#A3CDDC;
     --error:#F7B3A1; --on-error:#330E0B; --error-container:#8D280C; --on-error-container:#FBD9D0;
-    --surface:#0F1511; --surface-container-low:#171D19; --surface-container:#1B211D; --surface-container-high:#262B27;
+    --surface:#0F1511; --surface-container-lowest:#0A0F0C;
+    --surface-container-low:#171D19; --surface-container:#1B211D; --surface-container-high:#262B27;
     --surface-container-highest:#313632; --on-surface:#DFE4DD; --on-surface-variant:#C0C9C0;
     --outline:#8A938B; --outline-variant:#3F4840;
+    --inverse-surface:#DFE4DD; --on-inverse-surface:#2C322D; --inverse-primary:#296A48;
     --page-bg:#0A0D0B; --frame-bezel:#0d100e;
   }
   * { box-sizing:border-box; margin:0; }
   body { font-family:var(--font-sans); background:var(--page-bg); color:var(--on-surface); padding:24px 20px; }
-  .hdr { max-width:1240px; margin:0 auto 20px; display:flex; align-items:center; gap:14px; }
+  .hdr { max-width:1300px; margin:0 auto 20px; display:flex; align-items:center; gap:14px; }
   .hdr h1 { font-size:18px; font-weight:600; }
   .hdr .tag { font-size:12px; color:var(--on-surface-variant); }
   button.theme { font-family:inherit; font-size:13px; font-weight:500; padding:8px 14px; border-radius:999px; border:1px solid var(--outline); background:transparent; color:var(--on-surface); cursor:pointer; margin-left:auto; }
-  .stage { max-width:1240px; margin:0 auto; display:flex; gap:32px; flex-wrap:wrap; justify-content:center; align-items:flex-start; }
+  .stage { max-width:1300px; margin:0 auto; display:flex; gap:28px; flex-wrap:wrap; justify-content:center; align-items:flex-start; }
   .frame { flex:0 0 auto; display:flex; flex-direction:column; }
-  .frame .fcap { text-align:center; font-size:13px; font-weight:600; padding-bottom:10px; }
+  .frame .fcap { text-align:center; font-size:13px; font-weight:600; padding-bottom:8px; }
   .frame .fcap small { display:block; font-weight:400; font-size:11.5px; color:var(--on-surface-variant); margin-top:2px; }
-  .frame .view { width:380px; background:var(--surface); border-radius:38px; box-shadow:0 8px 40px rgba(0,0,0,.35),0 0 0 8px var(--frame-bezel); overflow:hidden; display:flex; flex-direction:column; }
-  .statusbar { height:28px; padding:5px 22px 0; font-size:12px; font-weight:500; display:flex; justify-content:space-between; flex:0 0 auto; }
-  .screen { padding:4px 0 20px; }
-  .ic { width:24px; height:24px; display:block; } .ic path { fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
-  .cap { font-size:11px; letter-spacing:.04em; color:var(--outline); padding:16px 20px 6px; }
+  .frame .view { width:340px; height:660px; background:var(--surface); border-radius:34px; box-shadow:0 8px 40px rgba(0,0,0,.35),0 0 0 8px var(--frame-bezel); overflow:hidden; display:flex; flex-direction:column; position:relative; }
+  .statusbar { height:26px; padding:4px 20px 0; font-size:12px; font-weight:500; display:flex; justify-content:space-between; flex:0 0 auto; }
+  .screen { flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+  .ic { width:22px; height:22px; display:block; } .ic path { fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
 
-  /* FAB 两种形状对比 */
-  .fabrow { display:flex; gap:28px; align-items:flex-end; padding:8px 20px 14px; }
-  .fabcol { display:flex; flex-direction:column; gap:6px; align-items:center; }
-  .fab { width:56px; height:56px; border:none; background:var(--primary); color:var(--on-primary); font-size:26px; box-shadow:0 4px 12px rgba(0,0,0,.25); display:grid; place-items:center; cursor:pointer; }
-  .fab.sq { border-radius:var(--r-lg); }
-  .fab.ci { border-radius:var(--r-full); }
-  .fablabel { font-size:11px; color:var(--on-surface-variant); }
+  /* 顶栏（#2 透明 · 56px） */
+  .bar { display:flex; align-items:center; justify-content:space-between; height:56px; padding:0 4px 0 var(--sp-edge); flex:0 0 auto; }
+  .bar .title { font:var(--t-appbar); letter-spacing:-.01em; font-family:var(--font-serif); }
+  .iconbtn { width:48px; height:48px; border:none; background:none; border-radius:var(--r-full); color:var(--on-surface-variant); display:grid; place-items:center; }
+  .iconbtn:hover { background:color-mix(in srgb, var(--on-surface) 8%, transparent); }
+  .iconbtn:active { background:color-mix(in srgb, var(--on-surface) 10%, transparent); }
 
-  /* 按钮族 */
-  .btn { font-family:inherit; font-size:14px; font-weight:500; padding:10px 22px; border-radius:var(--r-full); cursor:pointer; border:none; letter-spacing:.02em; }
-  .btn-fill { background:var(--primary); color:var(--on-primary); }
-  .btn-tonal { background:var(--secondary-container); color:var(--on-secondary-container); }
-  .btn-outline { background:transparent; color:var(--primary); border:1px solid var(--outline); }
-  .btn-text { background:transparent; color:var(--primary); padding:10px 12px; }
-  .btn-error { background:var(--error); color:var(--on-error); }
-  .brow { display:flex; gap:8px; padding:6px 20px; flex-wrap:wrap; align-items:center; }
-  .buse { padding:2px 20px 10px; }
-  .buse li { font-size:12px; line-height:1.7; color:var(--on-surface-variant); list-style:none; }
-  .buse b { color:var(--on-surface); font-weight:600; }
-  .statelab { font-size:10.5px; color:var(--outline); }
+  /* #1 标准行 */
+  .li { padding:var(--sp-row-v) var(--sp-edge); cursor:pointer; }
+  .li:hover { background:color-mix(in srgb, var(--on-surface) 8%, transparent); }
+  .li .t { font:var(--t-rowtitle); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .li .s { display:flex; justify-content:space-between; margin-top:3px; }
+  .li .s .p { flex:1; min-width:0; font:var(--t-preview); color:var(--on-surface-variant); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-right:12px; }
+  .li .s .tm { font:var(--t-time); color:var(--outline); font-variant-numeric:tabular-nums; flex:0 0 auto; }
 
-  .aside { max-width:1240px; margin:28px auto 0; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; }
+  /* #3 日期锚 */
+  .ghead { display:flex; align-items:baseline; gap:10px; padding:16px var(--sp-edge) 4px; }
+  .ghead:first-of-type { padding-top:10px; }
+  .ghead .gd { font:var(--t-gdate); color:var(--on-surface); font-variant-numeric:tabular-nums; }
+  .ghead.today .gd { color:var(--primary); }
+  .ghead .gw { font:var(--t-gweek); color:var(--on-surface-variant); }
+  .ghead .rule { flex:1; height:1px; background:var(--surface-container-high); }
+
+  /* #5 空态 */
+  .emptywrap { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 36px 110px; }
+  .emptywrap .hero { font-family:var(--font-serif); font-size:31px; line-height:1.5; font-weight:600; letter-spacing:-.01em; margin-bottom:14px; }
+  .emptywrap .hero em { font-style:normal; color:var(--primary); }
+  .emptywrap p { font-size:13.5px; line-height:1.7; color:var(--on-surface-variant); margin-bottom:24px; }
+  .btn { font:var(--t-btn); padding:12px 28px; border-radius:var(--r-full); border:none; background:var(--primary); color:var(--on-primary); cursor:pointer; letter-spacing:.02em; }
+  .btn.tonal { background:var(--secondary-container); color:var(--on-secondary-container); }
+
+  /* FAB（#6 16px 方）*/
+  .fab { position:absolute; right:16px; bottom:16px; width:56px; height:56px; border-radius:var(--r-fab); border:none; background:var(--primary); color:var(--on-primary); font-size:26px; box-shadow:0 4px 12px rgba(0,0,0,.25); display:grid; place-items:center; }
+
+  /* #4 编辑器 */
+  .saved { font:var(--t-saved); color:var(--outline); padding:2px 4px 6px; display:flex; align-items:center; gap:5px; }
+  .saved .ok { width:5px; height:5px; border-radius:50%; background:var(--primary); }
+  .writing { font:var(--t-editor); color:var(--on-surface); padding:4px var(--sp-edge); }
+  .listscroll { padding-bottom:96px; } /* FAB 让位：最后一行不被压住 */
+  .caret { display:inline-block; width:2px; height:1.05em; background:var(--primary); vertical-align:-.16em; animation:blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity:0; } }
+
+  /* 回收站 */
+  .trashli { display:flex; justify-content:space-between; align-items:center; padding:var(--sp-row-v) var(--sp-edge); }
+  .trashli .t { font:var(--t-rowtitle); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .trashli .s { font:var(--t-time); color:var(--outline); margin-top:2px; }
+  .trashnote { position:absolute; bottom:14px; left:var(--sp-edge); right:var(--sp-edge); font:var(--t-time); color:var(--outline); }
+
+  .aside { max-width:1300px; margin:28px auto 0; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; }
   .card { background:var(--surface-container-low); border-radius:12px; padding:16px; }
   .card h2 { font-size:14px; margin-bottom:8px; }
   .card p,.card li { font-size:12.5px; line-height:1.7; color:var(--on-surface-variant); }
@@ -71,77 +117,71 @@
 </head>
 <body data-theme="light">
 <div class="hdr">
-  <h1>Memova · #6 FAB 与按钮族</h1><span class="tag">形状裁定 + 五态用法表</span>
+  <h1>Memova · 微调轮 — 归一后的终装态</h1><span class="tag">字级/颜色/间距全部 token 化 · 与 DESIGN.md 同步</span>
   <button class="theme" onclick="toggleTheme()">明暗</button>
 </div>
 <div class="stage">
 
-  <!-- FAB 形状 -->
-  <div class="frame"><div class="fcap">FAB · 两种形状<small>M3 默认 16px 圆角方 vs 全圆</small></div>
+  <!-- 列表 -->
+  <div class="frame"><div class="fcap">列表（终装）<small>透明顶栏 + 日期锚 + 标准行</small></div>
     <div class="view"><div class="statusbar"><span>9:41</span><span>▮▮▮ ▮▮▮ ▮</span></div><div class="screen">
-      <div class="cap">同一位置 · 同一颜色 · 只差圆角</div>
-      <div class="fabrow">
-        <div class="fabcol"><button class="fab sq">＋</button><span class="fablabel">A · 16px 圆角方（M3 默认）</span></div>
-        <div class="fabcol"><button class="fab ci">＋</button><span class="fablabel">B · 全圆（M2 习惯）</span></div>
+      <div class="bar"><div class="title">Memova</div>
+        <div style="display:flex">
+          <button class="iconbtn"><svg class="ic" viewBox="0 0 24 24"><path d="M10.8 17.6a6.8 6.8 0 1 1 0-13.6 6.8 6.8 0 0 1 0 13.6z"/><path d="m16 16 4.2 4.2"/></svg></button>
+          <button class="iconbtn"><svg class="ic" viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M10 7V5.5h4V7"/><path d="M8.5 7l.8 11h5.4l.8-11"/></svg></button>
+        </div>
       </div>
-      <div class="cap">按压状态（M3 state layer 演示）</div>
-      <div class="fabrow">
-        <div class="fabcol"><button class="fab sq" style="filter:brightness(1.12)">＋</button><span class="fablabel">hover +12% 亮度</span></div>
-        <div class="fabcol"><button class="fab sq" style="filter:brightness(.9)">＋</button><span class="fablabel">pressed −10%</span></div>
-      </div>
-      <div class="cap">按钮族（memova 实际用到的五态）</div>
-      <div class="brow">
-        <button class="btn btn-fill">写第一条</button>
-        <button class="btn btn-tonal">去回收站看看</button>
-      </div>
-      <div class="brow">
-        <button class="btn btn-outline">取消</button>
-        <button class="btn btn-text">撤销</button>
-        <button class="btn btn-error">清空</button>
-      </div>
-      <div class="buse">
-        <li><b>fill</b> — 新建/写第一条：全屏唯一 primary 动作</li>
-        <li><b>tonal</b> — 去回收站看看：次级导航性动作（非 create 语义不用 primary）</li>
-        <li><b>outline</b> — 对话框取消：与破坏性按钮并排时的安全侧</li>
-        <li><b>text</b> — 撤销条上的 Undo：最低视觉重量的动作</li>
-        <li><b>error</b> — 清空回收站：朱红只做毁灭</li>
-      </div>
+      <div class="ghead today"><span class="gd">今天</span><span class="gw">8月30日 周六</span><span class="rule"></span></div>
+      <div class="li"><div class="t">今晚 7 点取快递</div><div class="s"><span class="p">菜鸟驿站 3-2-1809，带身份证</span><span class="tm">刚刚</span></div></div>
+      <div class="li"><div class="t">给妈妈回电话</div><div class="s"><span class="p"></span><span class="tm">32分钟前</span></div></div>
+      <div class="li"><div class="t">周三下午项目例会</div><div class="s"><span class="p">带上周 sprint 数据，先过阻塞项再排期</span><span class="tm">3小时前</span></div></div>
+      <div class="ghead"><span class="gd">昨天</span><span class="gw">8月29日 周五</span><span class="rule"></span></div>
+      <div class="li"><div class="t">阳台的绿萝要浇水了</div><div class="s"><span class="p"></span></div></div>
+      <div class="ghead"><span class="gd">8月22日</span><span class="gw">周六</span><span class="rule"></span></div>
+      <div class="li"><div class="t">研究 MD3 expressive 的落地方式</div><div class="s"><span class="p">Flutter 官方没有 M3E</span></div></div>
+      <div class="ghead"><span class="gd">8月14日</span><span class="gw">周五</span><span class="rule"></span></div>
+      <div class="li"><div class="t">这个月读完《设计中的设计》</div><div class="s"><span class="p"></span></div></div>
+      <button class="fab">＋</button>
     </div></div>
   </div>
 
-  <!-- 用法表 -->
-  <div class="frame"><div class="fcap">按钮在 memova 里的出现位置<small>每个态都有确定的岗位</small></div>
+  <!-- 编辑器 -->
+  <div class="frame"><div class="fcap">编辑器（终装）<small>裸面 + 已保存状态行</small></div>
     <div class="view"><div class="statusbar"><span>9:41</span><span>▮▮▮ ▮▮▮ ▮</span></div><div class="screen">
-      <div class="cap">列表屏</div>
-      <div class="brow"><button class="btn btn-fill">＋ FAB</button><span class="statelab">右下 · 唯一</span></div>
-      <div class="cap">空态（首启）</div>
-      <div class="brow"><button class="btn btn-fill">写第一条</button><span class="statelab">与 FAB 同动作</span></div>
-      <div class="cap">空态（回收站非空）</div>
-      <div class="brow"><button class="btn btn-tonal">去回收站看看</button></div>
-      <div class="cap">撤销条</div>
-      <div class="brow" style="background:var(--surface-container-high);margin:0 20px;border-radius:8px;padding:4px 8px;justify-content:space-between">
-        <span style="font-size:13px">已移到回收站</span><button class="btn btn-text" style="color:var(--primary)">撤销</button>
+      <div class="bar"><button class="iconbtn"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button></div>
+      <div class="saved"><span class="ok"></span>已保存</div>
+      <div class="writing">周三下午项目例会：带上周 sprint 数据，先过阻塞项再排期，最后同步下个迭代的估点<span class="caret"></span></div>
+    </div></div>
+  </div>
+
+  <!-- 回收站 -->
+  <div class="frame"><div class="fcap">回收站（终装）<small>标题换色 · 行内 ⋮ 菜单 · 底部 30 天提示</small></div>
+    <div class="view"><div class="statusbar"><span>9:41</span><span>▮▮▮ ▮▮▮ ▮</span></div><div class="screen">
+      <div class="bar"><div class="title">回收站</div>
+        <div style="display:flex">
+          <button class="iconbtn"><svg class="ic" viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M10 7V5.5h4V7"/><path d="M8.5 7l.8 11h5.4l.8-11"/></svg></button>
+        </div>
       </div>
-      <div class="cap">清空回收站对话框</div>
-      <div class="brow">
-        <button class="btn btn-outline">取消</button>
-        <button class="btn btn-error">清空</button>
-      </div>
+      <div class="trashli"><div style="min-width:0"><div class="t">今晚 7 点取快递</div><div class="s">Trashed 刚刚</div></div><span style="color:var(--on-surface-variant)">⋮</span></div>
+      <div class="trashli"><div style="min-width:0"><div class="t">阳台的绿萝要浇水了</div><div class="s">Trashed 昨天</div></div><span style="color:var(--on-surface-variant)">⋮</span></div>
+      <div class="trashnote">回收站里的备忘 30 天后自动清除</div>
     </div></div>
   </div>
 </div>
 
 <div class="aside">
-  <div class="card"><h2>FAB 形状怎么选</h2>
-    <ul><li><b>A 16px 圆角方</b>：M3 官方 FAB 形状，与卡片 12px 的形状语言同族 —— 选它就是选"系统原生"</li>
-    <li><b>B 全圆</b>：M2 时代的习惯，很多 app 仍用，但它是"旧 Material"的信号</li>
-    <li>推荐 <b>A</b>：我们承诺过 MD3 native，形状语言一致</li></ul>
+  <div class="card"><h2>归一裁定（本轮已应用）</h2>
+    <ul>
+      <li><b>字级</b>：顶栏 22 · 行首行 16 · 预览 13 · 时间 11 · 锚日期 13/600 · 编辑器 17 · 对话框标题 24（混用 20-28 全部归位）</li>
+      <li><b>颜色</b>：锚日期非今天 = onSurface，仅今天 primary（身份集中）；预览 onSurfaceVariant；时间 outline</li>
+      <li><b>间距</b>：屏边 20 · 行纵向 12 · FAB 右下 16 · 触区 48dp</li>
+    </ul>
   </div>
-  <div class="card"><h2>状态层（States communicate）</h2>
-    <p>FAB/按钮 hover +12%、pressed −10% 亮度 —— M3 的 state layer 机制，Flutter 里 Material 组件自带，无需手写。触区 ≥48dp。</p>
+  <div class="card"><h2>自审发现并修复的漂移</h2>
+    <p>顶栏标题 20/21/22 三版并存、行首行 15/15.5/16 三版并存、锚日期颜色前后不一、对话框标题 22-28 漂移 —— 全部归一到上表。这就是"微调放最后"的价值：一次看全，一次改完。</p>
   </div>
-  <div class="card"><h2>设计日志</h2>
-    <ul><li>✅ #1 行 · ✅ #2 顶栏 · ✅ #3 时间 · ✅ #4 编辑器 · ✅ #5 空态</li><li>⏳ #6 FAB+按钮族 ← 现在</li><li>之后：#7 删除撤销+对话框 → 微调轮</li></ul>
+  <div class="card"><h2>最后检查项</h2>
+    <ul><li>明暗切换过一遍三屏</li><li>还有哪里字太小/太淡/间距不对，现在提</li><li>通过 → 设计定稿，落 Flutter</li></ul>
   </div>
 </div>
 <script>
