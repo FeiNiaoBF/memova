@@ -39,6 +39,26 @@ omitted:
 
 # Memova Design System
 
+## Operating Principles (adopted from Google M3 + Apple HIG)
+
+Every component decision is judged against these; when Google and Apple pull
+against each other, memova resolves the conflict by letting **黛绿 be the only
+loud element** and simplifying everything else.
+
+1. **Deference (Apple):** the UI recedes; memo text is the star. Chrome stays
+   minimal, borders stay zeroed where content lives.
+2. **Clarity (Apple):** text is never smaller than it needs to be; icons are
+   precise line icons at one stroke weight; numerals are tabular.
+3. **Depth (Apple) / Motion meaningful (M3):** transitions explain spatial
+   relations (editor rises like a sheet; a deleted memo slides out left).
+4. **Accessibility by default (M3):** contrast comes from the algorithm, touch
+   targets stay ≥48dp, every state is visible.
+5. **States communicate (M3):** every tappable has a hover/pressed state layer.
+6. **Hierarchy by tone (M3):** layering uses surface-container tones, not
+   shadows or extra colors.
+7. **Identity concentrated (M3 expressive × Apple subtle):** 黛绿 carries the
+   identity; adornment everywhere else is subtracted.
+
 ## Overview
 
 Memova is a personal, local-first memo app: a single column of plain-text
@@ -100,10 +120,22 @@ Material defaults, no glass, no gradients.
 
 ## Components
 
+- **Top app bar (confirmed 2026-09):** **transparent** — no tint, content runs
+  to the top edge (Deference). Title `Memova` 22px/500 left-aligned (Clarity);
+  actions are precise line icons (search, trash) at one 1.7px stroke weight,
+  44dp touch targets. Rejected: surface-container tint (B) — a memo list stays
+  short enough that a scroll anchor isn't worth the added chrome.
 - **FAB (primary):** the only primary-color action — creating a memo. Never
   more than one.
-- **List rows:** `ListTile`; first line(s) of the body with ellipsis +
-  a relative timestamp; swipe-left (Dismissible) to delete.
+- **List rows — MemoRow (confirmed 2026-09):** an M3 **two-line list**
+  idiom (Apple Notes family): the body's first line renders **semibold
+  (titleMedium) as the implicit title** — the visual answer to "no titles"
+  (ADR-0003) — with a muted second-line preview and the relative timestamp
+  right-aligned (labelSmall, tabular numerals). Dense rows (M3 List), hover
+  state layer = onSurface tint; market precedent: Apple Notes. Card variants
+  were rejected: memova has no tags/colors (Keep) and is not a fragment feed
+  (flomo). The earlier editorial/flat-row exploration was superseded by this
+  research-grounded choice. Swipe-left (Dismissible) deletes.
 - **Delete / undo:** swiping moves the memo to Trash (sets `trashedAt`), then a
   **floating** SnackBar offers Undo. The destructive surface is the 朱红 error
   color. Undo restores the memo *unchanged* (updatedAt untouched).
