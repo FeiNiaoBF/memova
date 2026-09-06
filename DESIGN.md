@@ -110,8 +110,10 @@ from the algorithm).
   fallback chain — **zero bundle size**) for exactly two identity moments: the
   empty-state declaration 「想到，就写下来。」 and the app bar title. Serif = the
   writing semantics; it never touches functional text (small-size CJK serif
-  readability is a red line). If a device fails to resolve the system serif,
-  the fallback renders sans — graceful, zero-cost degradation.
+  readability is a red line). **On-device probe: confirmed rendering on
+  Pixel 4 XL / Android 16 (2026-09)** — if an unknown device fails to resolve
+  the system serif, the fallback renders sans, a graceful zero-cost
+  degradation.
 - **Sizes (tuned):** group date 13→**14** (anchor presence); editor 17→**18**
   (writing comfort). Everything else per the M3 scale in the token block.
 
