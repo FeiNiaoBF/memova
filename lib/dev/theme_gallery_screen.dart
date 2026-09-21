@@ -35,195 +35,227 @@ class ThemeGalleryScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _Section('Demo data', children: [
-            Row(
-              children: [
-                FilledButton.icon(
-                  onPressed: () async {
-                    for (final demo in _demoMemos) {
-                      final now = DateTime.now();
-                      final created = now.subtract(demo.age);
-                      await dao.createMemo(
-                        demo.body,
-                        createdAt: created,
-                        updatedAt: created,
-                      );
-                    }
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Seeded 12 demo memos')),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.playlist_add),
-                  label: const Text('Seed 12 memos'),
-                ),
-              ],
-            ),
-          ]),
-          _Section('Color roles', children: [
-            _SwatchRow(
-              label: 'Primary',
-              color: colorScheme.primary,
-              onColor: colorScheme.onPrimary,
-              container: colorScheme.primaryContainer,
-              onContainer: colorScheme.onPrimaryContainer,
-            ),
-            _SwatchRow(
-              label: 'Secondary',
-              color: colorScheme.secondary,
-              onColor: colorScheme.onSecondary,
-              container: colorScheme.secondaryContainer,
-              onContainer: colorScheme.onSecondaryContainer,
-            ),
-            _SwatchRow(
-              label: 'Tertiary',
-              color: colorScheme.tertiary,
-              onColor: colorScheme.onTertiary,
-              container: colorScheme.tertiaryContainer,
-              onContainer: colorScheme.onTertiaryContainer,
-            ),
-            _SwatchRow(
-              label: 'Error',
-              color: colorScheme.error,
-              onColor: colorScheme.onError,
-              container: colorScheme.errorContainer,
-              onContainer: colorScheme.onErrorContainer,
-            ),
-            _SurfaceRow(
-              label: 'Surface',
-              surface: colorScheme.surface,
-              low: colorScheme.surfaceContainerLow,
-              base: colorScheme.surfaceContainer,
-              high: colorScheme.surfaceContainerHigh,
-              text: colorScheme.onSurface,
-            ),
-          ]),
-          _Section('Type scale', children: [
-            Text('displaySmall — 备忘', style: textTheme.displaySmall),
-            Text('headlineMedium — 备忘', style: textTheme.headlineMedium),
-            Text('titleLarge — 备忘', style: textTheme.titleLarge),
-            Text('bodyLarge — 一行普通的备忘文字。',
-                style: textTheme.bodyLarge),
-            Text('bodyMedium — 一行普通的备忘文字。',
-                style: textTheme.bodyMedium),
-            Text('labelLarge — 备忘', style: textTheme.labelLarge),
-          ]),
-          _Section('Buttons', children: [
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                FilledButton(onPressed: () {}, child: const Text('Filled')),
-                FilledButton.tonal(
-                    onPressed: () {}, child: const Text('Tonal')),
-                OutlinedButton(
-                    onPressed: () {}, child: const Text('Outlined')),
-                TextButton(onPressed: () {}, child: const Text('Text')),
-                IconButton.filled(
-                    onPressed: () {}, icon: const Icon(Icons.favorite)),
-                FloatingActionButton.small(
-                    onPressed: () {}, child: const Icon(Icons.add)),
-              ],
-            ),
-          ]),
-          _Section('Inputs & selection', children: [
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'Memo body',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              title: const Text('Autosave'),
-              value: true,
-              onChanged: (_) {},
-            ),
-            CheckboxListTile(
-              title: const Text('Remind me'),
-              value: false,
-              onChanged: (_) {},
-            ),
-          ]),
-          _Section('Feedback', children: [
-            Row(
-              children: [
-                FilledButton(
-                  onPressed: () => showDialog<void>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Empty trash?'),
-                      content: const Text(
-                          'Every memo in the Trash will be permanently deleted.'),
-                      actions: [
-                        TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Cancel')),
-                        FilledButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Empty')),
-                      ],
-                    ),
+          _Section(
+            'Demo data',
+            children: [
+              Row(
+                children: [
+                  FilledButton.icon(
+                    onPressed: () async {
+                      for (final demo in _demoMemos) {
+                        final now = DateTime.now();
+                        final created = now.subtract(demo.age);
+                        await dao.createMemo(
+                          demo.body,
+                          createdAt: created,
+                          updatedAt: created,
+                        );
+                      }
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Seeded 12 demo memos')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.playlist_add),
+                    label: const Text('Seed 12 memos'),
                   ),
-                  child: const Text('Dialog'),
+                ],
+              ),
+            ],
+          ),
+          _Section(
+            'Color roles',
+            children: [
+              _SwatchRow(
+                label: 'Primary',
+                color: colorScheme.primary,
+                onColor: colorScheme.onPrimary,
+                container: colorScheme.primaryContainer,
+                onContainer: colorScheme.onPrimaryContainer,
+              ),
+              _SwatchRow(
+                label: 'Secondary',
+                color: colorScheme.secondary,
+                onColor: colorScheme.onSecondary,
+                container: colorScheme.secondaryContainer,
+                onContainer: colorScheme.onSecondaryContainer,
+              ),
+              _SwatchRow(
+                label: 'Tertiary',
+                color: colorScheme.tertiary,
+                onColor: colorScheme.onTertiary,
+                container: colorScheme.tertiaryContainer,
+                onContainer: colorScheme.onTertiaryContainer,
+              ),
+              _SwatchRow(
+                label: 'Error',
+                color: colorScheme.error,
+                onColor: colorScheme.onError,
+                container: colorScheme.errorContainer,
+                onContainer: colorScheme.onErrorContainer,
+              ),
+              _SurfaceRow(
+                label: 'Surface',
+                surface: colorScheme.surface,
+                low: colorScheme.surfaceContainerLow,
+                base: colorScheme.surfaceContainer,
+                high: colorScheme.surfaceContainerHigh,
+                text: colorScheme.onSurface,
+              ),
+            ],
+          ),
+          _Section(
+            'Type scale',
+            children: [
+              Text('displaySmall — 备忘', style: textTheme.displaySmall),
+              Text('headlineMedium — 备忘', style: textTheme.headlineMedium),
+              Text('titleLarge — 备忘', style: textTheme.titleLarge),
+              Text('bodyLarge — 一行普通的备忘文字。', style: textTheme.bodyLarge),
+              Text('bodyMedium — 一行普通的备忘文字。', style: textTheme.bodyMedium),
+              Text('labelLarge — 备忘', style: textTheme.labelLarge),
+            ],
+          ),
+          _Section(
+            'Buttons',
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  FilledButton(onPressed: () {}, child: const Text('Filled')),
+                  FilledButton.tonal(
+                    onPressed: () {},
+                    child: const Text('Tonal'),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {},
+                    child: const Text('Outlined'),
+                  ),
+                  TextButton(onPressed: () {}, child: const Text('Text')),
+                  IconButton.filled(
+                    onPressed: () {},
+                    icon: const Icon(Icons.favorite),
+                  ),
+                  FloatingActionButton.small(
+                    onPressed: () {},
+                    child: const Icon(Icons.add),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          _Section(
+            'Inputs & selection',
+            children: [
+              const TextField(
+                decoration: InputDecoration(
+                  labelText: 'Memo body',
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Memo moved to Trash'),
-                      action: SnackBarAction(
-                        label: 'Undo',
-                        onPressed: () {},
+              ),
+              const SizedBox(height: 8),
+              SwitchListTile(
+                title: const Text('Autosave'),
+                value: true,
+                onChanged: (_) {},
+              ),
+              CheckboxListTile(
+                title: const Text('Remind me'),
+                value: false,
+                onChanged: (_) {},
+              ),
+            ],
+          ),
+          _Section(
+            'Feedback',
+            children: [
+              Row(
+                children: [
+                  FilledButton(
+                    onPressed: () => showDialog<void>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Empty trash?'),
+                        content: const Text(
+                          'Every memo in the Trash will be permanently deleted.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Cancel'),
+                          ),
+                          FilledButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Empty'),
+                          ),
+                        ],
                       ),
                     ),
+                    child: const Text('Dialog'),
                   ),
-                  child: const Text('Snackbar'),
-                ),
-              ],
-            ),
-          ]),
-          _Section('Surfaces', children: [
-            Card(
-              child: ListTile(
-                leading: Icon(Icons.sticky_note_2_outlined,
-                    color: colorScheme.primary),
-                title: const Text('第一行是 memo 的脸'),
-                subtitle: const Text('5m ago'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () {},
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Memo moved to Trash'),
+                        action: SnackBarAction(label: 'Undo', onPressed: () {}),
+                      ),
+                    ),
+                    child: const Text('Snackbar'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          _Section(
+            'Surfaces',
+            children: [
+              Card(
+                child: ListTile(
+                  leading: Icon(
+                    Icons.sticky_note_2_outlined,
+                    color: colorScheme.primary,
+                  ),
+                  title: const Text('第一行是 memo 的脸'),
+                  subtitle: const Text('5m ago'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () {},
+                  ),
                 ),
               ),
-            ),
-            Card.filled(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Filled card — 一段填充卡片的演示文字，用来观察 surfaceContainer 在内容上的观感。',
-                  style: textTheme.bodyMedium,
+              Card.filled(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Filled card — 一段填充卡片的演示文字，用来观察 surfaceContainer 在内容上的观感。',
+                    style: textTheme.bodyMedium,
+                  ),
                 ),
               ),
-            ),
-          ]),
-          _Section('Chips', children: [
-            Wrap(
-              spacing: 8,
-              children: [
-                ActionChip(
-                  avatar: const Icon(Icons.bookmark),
-                  label: const Text('Bookmark'),
-                  onPressed: () {},
-                ),
-                FilterChip(
-                  label: const Text('Selected'),
-                  selected: true,
-                  onSelected: (_) {},
-                ),
-              ],
-            ),
-          ]),
+            ],
+          ),
+          _Section(
+            'Chips',
+            children: [
+              Wrap(
+                spacing: 8,
+                children: [
+                  ActionChip(
+                    avatar: const Icon(Icons.bookmark),
+                    label: const Text('Bookmark'),
+                    onPressed: () {},
+                  ),
+                  FilterChip(
+                    label: const Text('Selected'),
+                    selected: true,
+                    onSelected: (_) {},
+                  ),
+                ],
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -245,9 +277,8 @@ class _Section extends StatelessWidget {
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(color: Theme.of(context).colorScheme.primary),
           ),
           const SizedBox(height: 8),
           ...children,
@@ -341,10 +372,7 @@ class _Chip extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Center(
-        child: Text(
-          'A',
-          style: TextStyle(color: onColor, fontSize: 12),
-        ),
+        child: Text('A', style: TextStyle(color: onColor, fontSize: 12)),
       ),
     );
   }

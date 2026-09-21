@@ -37,25 +37,28 @@ List<MemoGroup> groupMemosByDay(List<Memo> memos, {DateTime? now}) {
 
   for (final memo in memos) {
     final t = memo.updatedAt;
-    final isNewDay =
-        groups.isEmpty || !isSameDay(groups.last.date, t);
+    final isNewDay = groups.isEmpty || !isSameDay(groups.last.date, t);
     if (isNewDay) {
       final isToday = isSameDay(t, reference);
-      final isYesterday =
-          isSameDay(t, reference.subtract(const Duration(days: 1)));
-      groups.add(MemoGroup(
-        date: t,
-        title: isToday
-            ? '今天'
-            : isYesterday
-                ? '昨天'
-                : dateLandmarkLabel(t, now: reference),
-        subtitle: (isToday || isYesterday)
-            ? fullDateStamp(t, now: reference)
-            : weekdayLabel(t),
-        isToday: isToday,
-        memos: [],
-      ));
+      final isYesterday = isSameDay(
+        t,
+        reference.subtract(const Duration(days: 1)),
+      );
+      groups.add(
+        MemoGroup(
+          date: t,
+          title: isToday
+              ? '今天'
+              : isYesterday
+              ? '昨天'
+              : dateLandmarkLabel(t, now: reference),
+          subtitle: (isToday || isYesterday)
+              ? fullDateStamp(t, now: reference)
+              : weekdayLabel(t),
+          isToday: isToday,
+          memos: [],
+        ),
+      );
     }
     groups.last.memos.add(memo);
   }

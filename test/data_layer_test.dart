@@ -20,23 +20,29 @@ void main() {
     required DateTime updatedAt,
     DateTime? trashedAt,
   }) {
-    return db.into(db.memos).insert(MemosCompanion.insert(
-          body: body,
-          createdAt: updatedAt,
-          updatedAt: updatedAt,
-          trashedAt: Value(trashedAt),
-        ));
+    return db
+        .into(db.memos)
+        .insert(
+          MemosCompanion.insert(
+            body: body,
+            createdAt: updatedAt,
+            updatedAt: updatedAt,
+            trashedAt: Value(trashedAt),
+          ),
+        );
   }
 
-  test('watchLiveMemos emits live memos ordered by updatedAt descending',
-      () async {
-    await insertMemo('older', updatedAt: DateTime(2026, 1, 1, 8));
-    await insertMemo('newer', updatedAt: DateTime(2026, 1, 1, 10));
+  test(
+    'watchLiveMemos emits live memos ordered by updatedAt descending',
+    () async {
+      await insertMemo('older', updatedAt: DateTime(2026, 1, 1, 8));
+      await insertMemo('newer', updatedAt: DateTime(2026, 1, 1, 10));
 
-    final memos = await db.memosDao.watchLiveMemos().first;
+      final memos = await db.memosDao.watchLiveMemos().first;
 
-    expect(memos.map((m) => m.body), ['newer', 'older']);
-  });
+      expect(memos.map((m) => m.body), ['newer', 'older']);
+    },
+  );
 
   test('watchLiveMemos excludes trashed memos', () async {
     await insertMemo('kept', updatedAt: DateTime(2026, 1, 1, 8));
@@ -54,24 +60,24 @@ void main() {
   test('createMemo persists the body and returns its id', () async {
     final id = await db.memosDao.createMemo('first thought');
 
-    final memo = await (db.select(db.memos)
-          ..where((m) => m.id.equals(id)))
-        .getSingle();
+    final memo = await (db.select(
+      db.memos,
+    )..where((m) => m.id.equals(id))).getSingle();
     expect(memo.body, 'first thought');
     expect(memo.trashedAt, isNull);
   });
 
   test('updateMemoBody replaces the body and preserves createdAt', () async {
     final id = await db.memosDao.createMemo('v1');
-    final before = await (db.select(db.memos)
-          ..where((m) => m.id.equals(id)))
-        .getSingle();
+    final before = await (db.select(
+      db.memos,
+    )..where((m) => m.id.equals(id))).getSingle();
 
     await db.memosDao.updateMemoBody(id, 'v2');
 
-    final after = await (db.select(db.memos)
-          ..where((m) => m.id.equals(id)))
-        .getSingle();
+    final after = await (db.select(
+      db.memos,
+    )..where((m) => m.id.equals(id))).getSingle();
     expect(after.body, 'v2');
     expect(after.createdAt, before.createdAt);
   });
@@ -96,24 +102,26 @@ void main() {
     expect(memos.single.trashedAt, isNull);
   });
 
-  test('watchTrashedMemos emits trashed memos ordered by trashedAt descending',
-      () async {
-    await insertMemo(
-      'old trash',
-      updatedAt: DateTime(2026, 1, 1, 8),
-      trashedAt: DateTime(2026, 1, 2, 8),
-    );
-    await insertMemo(
-      'new trash',
-      updatedAt: DateTime(2026, 1, 1, 10),
-      trashedAt: DateTime(2026, 1, 3, 10),
-    );
-    await insertMemo('live', updatedAt: DateTime(2026, 1, 4));
+  test(
+    'watchTrashedMemos emits trashed memos ordered by trashedAt descending',
+    () async {
+      await insertMemo(
+        'old trash',
+        updatedAt: DateTime(2026, 1, 1, 8),
+        trashedAt: DateTime(2026, 1, 2, 8),
+      );
+      await insertMemo(
+        'new trash',
+        updatedAt: DateTime(2026, 1, 1, 10),
+        trashedAt: DateTime(2026, 1, 3, 10),
+      );
+      await insertMemo('live', updatedAt: DateTime(2026, 1, 4));
 
-    final trashed = await db.memosDao.watchTrashedMemos().first;
+      final trashed = await db.memosDao.watchTrashedMemos().first;
 
-    expect(trashed.map((m) => m.body), ['new trash', 'old trash']);
-  });
+      expect(trashed.map((m) => m.body), ['new trash', 'old trash']);
+    },
+  );
 
   test('emptyTrash permanently deletes every trashed memo', () async {
     await insertMemo(
@@ -136,29 +144,31 @@ void main() {
     expect(live.map((m) => m.body), ['keep me']);
   });
 
-  test('purgeTrashedMemos deletes only memos trashed before the cutoff',
-      () async {
-    await insertMemo(
-      'too old',
-      updatedAt: DateTime(2026, 1, 1, 8),
-      trashedAt: DateTime(2026, 1, 2),
-    );
-    await insertMemo(
-      'recent trash',
-      updatedAt: DateTime(2026, 1, 1, 9),
-      trashedAt: DateTime(2026, 2, 1),
-    );
-    await insertMemo('live', updatedAt: DateTime(2026, 1, 1, 10));
+  test(
+    'purgeTrashedMemos deletes only memos trashed before the cutoff',
+    () async {
+      await insertMemo(
+        'too old',
+        updatedAt: DateTime(2026, 1, 1, 8),
+        trashedAt: DateTime(2026, 1, 2),
+      );
+      await insertMemo(
+        'recent trash',
+        updatedAt: DateTime(2026, 1, 1, 9),
+        trashedAt: DateTime(2026, 2, 1),
+      );
+      await insertMemo('live', updatedAt: DateTime(2026, 1, 1, 10));
 
-    // Cutoff: Jan 31 → 'too old' (trashed Jan 2) goes, 'recent trash'
-    // (trashed Feb 1) stays, live memos never touched.
-    await db.memosDao.purgeTrashedMemos(before: DateTime(2026, 1, 31));
+      // Cutoff: Jan 31 → 'too old' (trashed Jan 2) goes, 'recent trash'
+      // (trashed Feb 1) stays, live memos never touched.
+      await db.memosDao.purgeTrashedMemos(before: DateTime(2026, 1, 31));
 
-    final trashed = await db.memosDao.watchTrashedMemos().first;
-    final live = await db.memosDao.watchLiveMemos().first;
-    expect(trashed.map((m) => m.body), ['recent trash']);
-    expect(live.map((m) => m.body), ['live']);
-  });
+      final trashed = await db.memosDao.watchTrashedMemos().first;
+      final live = await db.memosDao.watchLiveMemos().first;
+      expect(trashed.map((m) => m.body), ['recent trash']);
+      expect(live.map((m) => m.body), ['live']);
+    },
+  );
 
   test('watchLiveMemos with a query filters case-insensitively, anywhere '
       'in the body, live memos only', () async {
@@ -173,13 +183,18 @@ void main() {
 
     // Case-insensitive (matches 'Buy milk' and 'MILK alternatives'),
     // anywhere in the body, excludes trashed memos.
-    final results =
-        await db.memosDao.watchLiveMemos(query: 'milk').first;
-    expect(results.map((m) => m.body), ['MILK alternatives', 'Buy milk and bread']);
+    final results = await db.memosDao.watchLiveMemos(query: 'milk').first;
+    expect(results.map((m) => m.body), [
+      'MILK alternatives',
+      'Buy milk and bread',
+    ]);
 
     // Empty query returns everything live, newest first.
     final all = await db.memosDao.watchLiveMemos().first;
-    expect(all.map((m) => m.body),
-        ['unrelated', 'MILK alternatives', 'Buy milk and bread']);
+    expect(all.map((m) => m.body), [
+      'unrelated',
+      'MILK alternatives',
+      'Buy milk and bread',
+    ]);
   });
 }

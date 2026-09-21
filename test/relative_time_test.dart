@@ -6,18 +6,24 @@ void main() {
 
   group('relativeTime（混合制：今天相对，之后日期地标）', () {
     test('刚刚', () {
-      expect(relativeTime(now.subtract(const Duration(seconds: 30)), now: now),
-          '刚刚');
+      expect(
+        relativeTime(now.subtract(const Duration(seconds: 30)), now: now),
+        '刚刚',
+      );
     });
 
     test('分钟', () {
-      expect(relativeTime(now.subtract(const Duration(minutes: 32)), now: now),
-          '32分钟前');
+      expect(
+        relativeTime(now.subtract(const Duration(minutes: 32)), now: now),
+        '32分钟前',
+      );
     });
 
     test('小时（同一自然日）', () {
-      expect(relativeTime(now.subtract(const Duration(hours: 3)), now: now),
-          '3小时前');
+      expect(
+        relativeTime(now.subtract(const Duration(hours: 3)), now: now),
+        '3小时前',
+      );
     });
 
     test('超过 24h → 日期地标 + 星期', () {
@@ -29,8 +35,7 @@ void main() {
     });
 
     test('未来时间按刚刚处理', () {
-      expect(relativeTime(now.add(const Duration(minutes: 5)), now: now),
-          '刚刚');
+      expect(relativeTime(now.add(const Duration(minutes: 5)), now: now), '刚刚');
     });
   });
 
@@ -40,8 +45,10 @@ void main() {
     });
 
     test('昨天', () {
-      expect(dateAnchorLabel(now.subtract(const Duration(days: 1)), now: now),
-          '昨天');
+      expect(
+        dateAnchorLabel(now.subtract(const Duration(days: 1)), now: now),
+        '昨天',
+      );
     });
 
     test('更早 → 真实日期 + 星期（绝不写"更早"）', () {

@@ -10,8 +10,9 @@ Future<void> openTrash(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('trash entry lists trashed memos with their trashed timestamp',
-      (tester) async {
+  testWidgets('trash entry lists trashed memos with their trashed timestamp', (
+    tester,
+  ) async {
     final db = await pumpApp(tester);
     await seedMemo(
       db,
@@ -38,8 +39,9 @@ void main() {
     await db.close();
   });
 
-  testWidgets('restore from the Trash returns the memo to the List',
-      (tester) async {
+  testWidgets('restore from the Trash returns the memo to the List', (
+    tester,
+  ) async {
     final db = await pumpApp(tester);
     await seedMemo(
       db,
@@ -65,8 +67,9 @@ void main() {
     await db.close();
   });
 
-  testWidgets('permanently deleting a memo removes it from the Trash',
-      (tester) async {
+  testWidgets('permanently deleting a memo removes it from the Trash', (
+    tester,
+  ) async {
     final db = await pumpApp(tester);
     await seedMemo(
       db,
@@ -86,9 +89,9 @@ void main() {
     expect(find.text('to delete forever'), findsNothing);
 
     // Irrecoverable: gone from the database entirely.
-    final rows = await (db.select(db.memos)
-          ..where((m) => m.body.equals('to delete forever')))
-        .get();
+    final rows = await (db.select(
+      db.memos,
+    )..where((m) => m.body.equals('to delete forever'))).get();
     expect(rows, isEmpty);
 
     await tester.pageBack();
@@ -96,8 +99,9 @@ void main() {
     await db.close();
   });
 
-  testWidgets('empty trash asks for confirmation before purging',
-      (tester) async {
+  testWidgets('empty trash asks for confirmation before purging', (
+    tester,
+  ) async {
     final db = await pumpApp(tester);
     await seedMemo(
       db,

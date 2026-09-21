@@ -27,10 +27,12 @@ class AppDatabase extends _$AppDatabase {
 /// [LazyDatabase] delays touching the file until the first query runs, so
 /// constructing the database in `main()` costs nothing until the UI asks.
 AppDatabase openAppDatabase() {
-  return AppDatabase(LazyDatabase(() async {
-    final dir = await getApplicationDocumentsDirectory();
-    return NativeDatabase(File('${dir.path}/memova.sqlite'));
-  }));
+  return AppDatabase(
+    LazyDatabase(() async {
+      final dir = await getApplicationDocumentsDirectory();
+      return NativeDatabase(File('${dir.path}/memova.sqlite'));
+    }),
+  );
 }
 
 /// Data access for memos — the only place queries are written
@@ -105,7 +107,6 @@ class MemosDao extends DatabaseAccessor<AppDatabase> with _$MemosDaoMixin {
     );
   }
 
-
   /// Trashed memos, most-recently-trashed first, as a reactive stream.
   ///
   /// Powers the Trash screen (#6); the List's [watchLiveMemos] stays the
@@ -130,6 +131,8 @@ class MemosDao extends DatabaseAccessor<AppDatabase> with _$MemosDaoMixin {
   /// tests pin the cutoff instead of depending on the wall clock.
   Future<void> purgeTrashedMemos({DateTime? before}) async {
     final cutoff = before ?? DateTime.now().subtract(const Duration(days: 30));
-    await (delete(memos)..where((m) => m.trashedAt.isSmallerThanValue(cutoff))).go();
+    await (delete(
+      memos,
+    )..where((m) => m.trashedAt.isSmallerThanValue(cutoff))).go();
   }
 }

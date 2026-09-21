@@ -37,8 +37,9 @@ void main() {
     await db.close();
   });
 
-  testWidgets('swiping removes the memo from the List; undo restores it',
-      (tester) async {
+  testWidgets('swiping removes the memo from the List; undo restores it', (
+    tester,
+  ) async {
     final db = await pumpApp(tester);
     await seedMemo(db, 'doomed memo', DateTime(2026, 1, 1, 8));
     await tester.pumpAndSettle();

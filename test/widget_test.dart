@@ -41,16 +41,24 @@ void main() {
 
     // Insert after the screen is already showing — the reactive stream
     // must update the List on its own, no manual refresh.
-    await db.into(db.memos).insert(MemosCompanion.insert(
-          body: 'older memo',
-          createdAt: DateTime(2026, 1, 1, 8),
-          updatedAt: DateTime(2026, 1, 1, 8),
-        ));
-    await db.into(db.memos).insert(MemosCompanion.insert(
-          body: 'newer memo',
-          createdAt: DateTime(2026, 1, 1, 10),
-          updatedAt: DateTime(2026, 1, 1, 10),
-        ));
+    await db
+        .into(db.memos)
+        .insert(
+          MemosCompanion.insert(
+            body: 'older memo',
+            createdAt: DateTime(2026, 1, 1, 8),
+            updatedAt: DateTime(2026, 1, 1, 8),
+          ),
+        );
+    await db
+        .into(db.memos)
+        .insert(
+          MemosCompanion.insert(
+            body: 'newer memo',
+            createdAt: DateTime(2026, 1, 1, 10),
+            updatedAt: DateTime(2026, 1, 1, 10),
+          ),
+        );
     await tester.pumpAndSettle();
 
     expect(find.text('newer memo'), findsOneWidget);
@@ -68,11 +76,15 @@ void main() {
     final db = await pumpApp(tester);
 
     final updated = DateTime.now().subtract(const Duration(minutes: 5));
-    await db.into(db.memos).insert(MemosCompanion.insert(
-          body: 'a memo',
-          createdAt: updated,
-          updatedAt: updated,
-        ));
+    await db
+        .into(db.memos)
+        .insert(
+          MemosCompanion.insert(
+            body: 'a memo',
+            createdAt: updated,
+            updatedAt: updated,
+          ),
+        );
     await tester.pumpAndSettle();
 
     expect(find.text('5分钟前'), findsOneWidget);

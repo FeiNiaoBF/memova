@@ -6,12 +6,12 @@ void main() {
   final now = DateTime(2026, 8, 30, 12); // 周六
 
   Memo memo(String body, DateTime updatedAt) => Memo(
-        id: 0,
-        body: body,
-        createdAt: updatedAt,
-        updatedAt: updatedAt,
-        trashedAt: null,
-      );
+    id: 0,
+    body: body,
+    createdAt: updatedAt,
+    updatedAt: updatedAt,
+    trashedAt: null,
+  );
 
   test('groups consecutive memos into 今天/昨天/日期锚点', () {
     final groups = groupMemosByDay([
