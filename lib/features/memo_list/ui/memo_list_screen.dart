@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,9 +50,7 @@ class MemoListScreen extends ConsumerWidget {
             icon: const Icon(Icons.delete_outline),
             tooltip: 'Trash',
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const TrashScreen(),
-              ),
+              MaterialPageRoute<void>(builder: (_) => const TrashScreen()),
             ),
           ),
         ],
@@ -75,11 +75,7 @@ class MemoListScreen extends ConsumerWidget {
           }
           // Search is finding, not reminiscing — flat list, no landmarks.
           return searching
-              ? _MemoList(
-                  memos: memos,
-                  showTime: true,
-                  bottomPadding: 96,
-                )
+              ? _MemoList(memos: memos, showTime: true, bottomPadding: 96)
               : _GroupedMemoList(memos: memos);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -90,9 +86,8 @@ class MemoListScreen extends ConsumerWidget {
   }
 
   void _openSearch(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const SearchScreen()),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const SearchScreen()));
   }
 }
 
@@ -106,32 +101,41 @@ class SearchScreen extends ConsumerWidget {
     final query = ref.watch(searchQueryProvider);
     final memosAsync = ref.watch(liveMemosProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: TextField(
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: '搜索备忘',
-            border: InputBorder.none,
-          ),
-          onChanged: (value) =>
-              ref.read(searchQueryProvider.notifier).update(value),
-        ),
-        actions: [
-          if (query.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.clear),
-              tooltip: 'Clear search',
-              onPressed: () => ref.read(searchQueryProvider.notifier).update(''),
+    return PopScope<void>(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          ref.read(searchQueryProvider.notifier).clear();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: TextField(
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: '搜索备忘',
+              border: InputBorder.none,
             ),
-        ],
-      ),
-      body: memosAsync.when(
-        data: (memos) =>
-            memos.isEmpty ? const _NoResults() : _MemoList(memos: memos, showTime: true),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) =>
-            Center(child: Text('Something went wrong: $error')),
+            onChanged: (value) =>
+                ref.read(searchQueryProvider.notifier).update(value),
+          ),
+          actions: [
+            if (query.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.clear),
+                tooltip: 'Clear search',
+                onPressed: () =>
+                    ref.read(searchQueryProvider.notifier).update(''),
+              ),
+          ],
+        ),
+        body: memosAsync.when(
+          data: (memos) => memos.isEmpty
+              ? const _NoResults()
+              : _MemoList(memos: memos, showTime: true),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) =>
+              Center(child: Text('Something went wrong: $error')),
+        ),
       ),
     );
   }
@@ -150,11 +154,13 @@ class _GroupedMemoList extends ConsumerWidget {
 
     final children = <Widget>[];
     for (final group in groups) {
-      children.add(_GroupHeader(
-        title: group.title,
-        subtitle: group.subtitle,
-        isToday: group.isToday,
-      ));
+      children.add(
+        _GroupHeader(
+          title: group.title,
+          subtitle: group.subtitle,
+          isToday: group.isToday,
+        ),
+      );
       for (final memo in group.memos) {
         children.add(
           Dismissible(
@@ -184,14 +190,21 @@ class _GroupedMemoList extends ConsumerWidget {
     MemosDao dao,
     Memo memo,
   ) async {
-    await dao.trashMemo(memo.id);
+    try {
+      await dao.trashMemo(memo.id);
+    } catch (_) {
+      if (context.mounted) _showDatabaseError(context);
+      return false;
+    }
     if (!context.mounted) return false;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('已移到回收站'),
         action: SnackBarAction(
           label: '撤销',
-          onPressed: () => dao.restoreMemo(memo.id),
+          onPressed: () => unawaited(
+            _runDatabaseAction(context, () => dao.restoreMemo(memo.id)),
+          ),
         ),
       ),
     );
@@ -211,7 +224,11 @@ class _GroupedMemoList extends ConsumerWidget {
 
 /// Flat list (search results) — no landmark anchors.
 class _MemoList extends ConsumerWidget {
-  const _MemoList({required this.memos, required this.showTime, this.bottomPadding = 0});
+  const _MemoList({
+    required this.memos,
+    required this.showTime,
+    this.bottomPadding = 0,
+  });
 
   final List<Memo> memos;
   final bool showTime;
@@ -246,14 +263,21 @@ class _MemoList extends ConsumerWidget {
     MemosDao dao,
     Memo memo,
   ) async {
-    await dao.trashMemo(memo.id);
+    try {
+      await dao.trashMemo(memo.id);
+    } catch (_) {
+      if (context.mounted) _showDatabaseError(context);
+      return false;
+    }
     if (!context.mounted) return false;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('已移到回收站'),
         action: SnackBarAction(
           label: '撤销',
-          onPressed: () => dao.restoreMemo(memo.id),
+          onPressed: () => unawaited(
+            _runDatabaseAction(context, () => dao.restoreMemo(memo.id)),
+          ),
         ),
       ),
     );
@@ -312,7 +336,12 @@ class _GroupHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Expanded(child: Container(height: 1, color: colorScheme.surfaceContainerHigh)),
+          Expanded(
+            child: Container(
+              height: 1,
+              color: colorScheme.surfaceContainerHigh,
+            ),
+          ),
         ],
       ),
     );
@@ -322,7 +351,11 @@ class _GroupHeader extends StatelessWidget {
 /// The memo row (component #1, DESIGN.md): M3 two-line list idiom — first
 /// line semibold as the implicit title, muted preview, right-aligned time.
 class _MemoRow extends StatelessWidget {
-  const _MemoRow({required this.memo, required this.showTime, required this.onTap});
+  const _MemoRow({
+    required this.memo,
+    required this.showTime,
+    required this.onTap,
+  });
 
   final Memo memo;
   final bool showTime;
@@ -355,8 +388,8 @@ class _MemoRow extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           if (time != null) ...[
@@ -374,6 +407,23 @@ class _MemoRow extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _runDatabaseAction(
+  BuildContext context,
+  Future<void> Function() action,
+) async {
+  try {
+    await action();
+  } catch (_) {
+    if (context.mounted) _showDatabaseError(context);
+  }
+}
+
+void _showDatabaseError(BuildContext context) {
+  if (!context.mounted) return;
+  ScaffoldMessenger.of(context)
+      .showSnackBar(const SnackBar(content: Text('操作失败，请重试')));
 }
 
 class _DismissBackground extends StatelessWidget {
@@ -399,20 +449,18 @@ class _ListEmptyState extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final trashedCount = (ref.watch(trashedMemosProvider).value ?? const []).length;
+    final trashedCount =
+        (ref.watch(trashedMemosProvider).value ?? const []).length;
     final colorScheme = Theme.of(context).colorScheme;
 
     if (trashedCount > 0) {
       return _EmptyShell(
-        hero: Text.rich(
-          TextSpan(text: '都还在。'),
-          style: _heroStyle(context),
-        ),
+        hero: Text.rich(TextSpan(text: '都还在。'), style: _heroStyle(context)),
         copy: '备忘在回收站里躺着，30 天内随时可以拿回来。',
         action: FilledButton.tonal(
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => const TrashScreen()),
-          ),
+          onPressed: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute<void>(builder: (_) => const TrashScreen())),
           child: const Text('去回收站看看'),
         ),
       );
@@ -457,7 +505,11 @@ class _ListEmptyState extends ConsumerWidget {
 
 /// Shared empty-state shell: centered, hero + copy + optional action.
 class _EmptyShell extends StatelessWidget {
-  const _EmptyShell({required this.hero, required this.copy, required this.action});
+  const _EmptyShell({
+    required this.hero,
+    required this.copy,
+    required this.action,
+  });
 
   final Widget hero;
   final String copy;
@@ -477,9 +529,9 @@ class _EmptyShell extends StatelessWidget {
               copy,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    height: 1.7,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                height: 1.7,
+              ),
             ),
             const SizedBox(height: 24),
             action,
@@ -506,15 +558,9 @@ class _NoResults extends StatelessWidget {
             color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(height: 16),
-          Text(
-            '没有匹配的备忘',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('没有匹配的备忘', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          Text(
-            '试试其他关键词',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          Text('试试其他关键词', style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
     );

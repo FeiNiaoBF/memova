@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -46,9 +48,7 @@ class TrashScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('清空回收站？'),
-        content: const Text(
-          '回收站里的每条备忘都会被永久删除，无法撤销。',
-        ),
+        content: const Text('回收站里的每条备忘都会被永久删除，无法撤销。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -66,9 +66,30 @@ class TrashScreen extends ConsumerWidget {
       ),
     );
     if (confirmed ?? false) {
-      await dao.emptyTrash();
+      try {
+        await dao.emptyTrash();
+      } catch (_) {
+        if (context.mounted) _showDatabaseError(context);
+      }
     }
   }
+}
+
+Future<void> _runTrashAction(
+  BuildContext context,
+  Future<void> Function() action,
+) async {
+  try {
+    await action();
+  } catch (_) {
+    if (context.mounted) _showDatabaseError(context);
+  }
+}
+
+void _showDatabaseError(BuildContext context) {
+  if (!context.mounted) return;
+  ScaffoldMessenger.of(context)
+      .showSnackBar(const SnackBar(content: Text('操作失败，请重试')));
 }
 
 class _TrashList extends ConsumerWidget {
@@ -89,9 +110,8 @@ class _TrashList extends ConsumerWidget {
             child: Text(
               '回收站里的备忘 30 天后自动清除',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
             ),
           );
         }
@@ -107,23 +127,21 @@ class _TrashList extends ConsumerWidget {
             onSelected: (action) {
               switch (action) {
                 case 'restore':
-                  dao.restoreMemo(memo.id);
+                  unawaited(
+                    _runTrashAction(context, () => dao.restoreMemo(memo.id)),
+                  );
                 case 'delete':
                   // Deliberately unconfirmed (DESIGN.md #7 policy): the Trash
                   // itself is the safety buffer, and confirmations are
                   // reserved for emptying the whole Trash.
-                  dao.deleteMemo(memo.id);
+                  unawaited(
+                    _runTrashAction(context, () => dao.deleteMemo(memo.id)),
+                  );
               }
             },
             itemBuilder: (context) => const [
-              PopupMenuItem(
-                value: 'restore',
-                child: Text('恢复'),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Text('永久删除'),
-              ),
+              PopupMenuItem(value: 'restore', child: Text('恢复')),
+              PopupMenuItem(value: 'delete', child: Text('永久删除')),
             ],
           ),
         );

@@ -16,8 +16,9 @@ class MemoEditorScreen extends ConsumerStatefulWidget {
 }
 
 class _MemoEditorScreenState extends ConsumerState<MemoEditorScreen> {
-  late final TextEditingController _controller =
-      TextEditingController(text: widget.args.initialBody);
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.args.initialBody,
+  );
 
   @override
   void dispose() {
@@ -28,8 +29,16 @@ class _MemoEditorScreenState extends ConsumerState<MemoEditorScreen> {
   /// Flush pending writes, then leave. Shared by the app-bar back button and
   /// the system back gesture (PopScope).
   Future<void> _closeAndPop() async {
-    await ref.read(memoEditorProvider(widget.args).notifier).close();
-    if (mounted) Navigator.of(context).pop();
+    final closed = await ref
+        .read(memoEditorProvider(widget.args).notifier)
+        .close();
+    if (!mounted) return;
+    if (!closed) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('保存失败，请重试')));
+      return;
+    }
+    Navigator.of(context).pop();
   }
 
   @override
@@ -54,10 +63,16 @@ class _MemoEditorScreenState extends ConsumerState<MemoEditorScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 2, 20, 6),
               child: Text(
-                state.saveState == EditorSaveState.saved ? '已保存' : '保存中…',
+                switch (state.saveState) {
+                  EditorSaveState.saved => '已保存',
+                  EditorSaveState.saving => '保存中…',
+                  EditorSaveState.error => '保存失败',
+                },
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                  color: state.saveState == EditorSaveState.error
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.outline,
+                ),
               ),
             ),
             Expanded(

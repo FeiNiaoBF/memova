@@ -12,10 +12,13 @@ class SearchQuery extends Notifier<String> {
   String build() => '';
 
   void update(String value) => state = value;
+
+  void clear() => state = '';
 }
 
-final searchQueryProvider =
-    NotifierProvider<SearchQuery, String>(SearchQuery.new);
+final searchQueryProvider = NotifierProvider<SearchQuery, String>(
+  SearchQuery.new,
+);
 
 /// Live memos, newest-updated first, as a reactive stream.
 ///
@@ -26,4 +29,3 @@ final liveMemosProvider = StreamProvider<List<Memo>>((ref) {
   final query = ref.watch(searchQueryProvider);
   return ref.watch(databaseProvider).memosDao.watchLiveMemos(query: query);
 });
-

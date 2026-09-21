@@ -29,15 +29,19 @@ Future<void> seedMemo(
   DateTime updatedAt, {
   DateTime? trashedAt,
 }) async {
-  await db.into(db.memos).insert(MemosCompanion.insert(
-        body: body,
-        createdAt: updatedAt,
-        updatedAt: updatedAt,
-        trashedAt: Value(trashedAt),
-      ));
+  await db
+      .into(db.memos)
+      .insert(
+        MemosCompanion.insert(
+          body: body,
+          createdAt: updatedAt,
+          updatedAt: updatedAt,
+          trashedAt: Value(trashedAt),
+        ),
+      );
 }
 
 /// Every memo row, newest-updated first — direct query for assertions.
-Future<List<Memo>> allMemos(AppDatabase db) =>
-    (db.select(db.memos)..orderBy([(m) => OrderingTerm.desc(m.updatedAt)]))
-        .get();
+Future<List<Memo>> allMemos(AppDatabase db) => (db.select(
+  db.memos,
+)..orderBy([(m) => OrderingTerm.desc(m.updatedAt)])).get();

@@ -4,6 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/providers.dart';
 
+typedef MemoSave = Future<int> Function(int? memoId, String body);
+
+/// The default write-through operation. It is a function seam rather than a
+/// repository layer so the editor's failure recovery can be tested without
+/// changing the app's small feature-first architecture.
+final memoSaveProvider = Provider<MemoSave>((ref) {
+  return (memoId, body) async {
+    final dao = ref.read(databaseProvider).memosDao;
+    if (memoId == null) return dao.createMemo(body);
+    await dao.updateMemoBody(memoId, body);
+    return memoId;
+  };
+});
+
 /// Identifies one editor session: which memo is being edited, if any.
 class MemoEditorArgs {
   const MemoEditorArgs({this.memoId, this.initialBody = ''});
@@ -17,7 +31,7 @@ class MemoEditorArgs {
 
 /// What the save-state line shows (#4: the trust bridge between the
 /// write-through mechanism and the user's confidence in it).
-enum EditorSaveState { saved, saving }
+enum EditorSaveState { saved, saving, error }
 
 class MemoEditorState {
   const MemoEditorState({required this.body, required this.saveState});
@@ -48,11 +62,15 @@ class MemoEditor extends Notifier<MemoEditorState> {
   final MemoEditorArgs args;
   int? _memoId;
   Future<void> _queue = Future.value();
+  Object? _lastWriteError;
 
   @override
   MemoEditorState build() {
     _memoId = args.memoId;
-    return MemoEditorState(body: args.initialBody, saveState: EditorSaveState.saved);
+    return MemoEditorState(
+      body: args.initialBody,
+      saveState: EditorSaveState.saved,
+    );
   }
 
   /// Every keystroke persists immediately. An empty body never writes:
@@ -64,33 +82,49 @@ class MemoEditor extends Notifier<MemoEditorState> {
       state = state.copyWith(saveState: EditorSaveState.saved);
       return;
     }
-    _queue = _queue.then((_) => _persist(body));
+    _queue = _queue.then((_) async {
+      try {
+        _memoId = await _persist(body);
+        _lastWriteError = null;
+        // Only flip back to saved if no newer keystroke is waiting behind
+        // this write — otherwise the queue drains them in order and the last
+        // one flips the flag.
+        if (state.body == body) {
+          state = state.copyWith(saveState: EditorSaveState.saved);
+        }
+      } catch (error) {
+        _lastWriteError = error;
+        if (state.body == body) {
+          state = state.copyWith(saveState: EditorSaveState.error);
+        }
+        // Keep the queue usable: a later keystroke can retry after a
+        // transient storage failure instead of inheriting a rejected Future.
+      }
+    });
   }
 
-  Future<void> _persist(String body) async {
-    final dao = ref.read(databaseProvider).memosDao;
-    if (_memoId == null) {
-      _memoId = await dao.createMemo(body);
-    } else {
-      await dao.updateMemoBody(_memoId!, body);
-    }
-    // Only flip back to saved if no newer keystroke is waiting behind this
-    // write — otherwise the queue drains them in order and the last one
-    // flips the flag.
-    if (state.body == body) {
-      state = state.copyWith(saveState: EditorSaveState.saved);
-    }
+  Future<int> _persist(String body) {
+    return ref.read(memoSaveProvider)(_memoId, body);
   }
 
-  /// Waits for every pending keystroke to land, then drops an empty draft.
-  /// Call before leaving the editor so nothing is lost to in-flight writes.
-  Future<void> close() async {
+  /// Waits for every pending keystroke to land, retries the current body once
+  /// after a failed write, then drops an empty draft. Returns false when the
+  /// final retry fails so the screen can keep the user's text visible.
+  Future<bool> close() async {
     await _queue;
+    if (_lastWriteError != null && state.body.isNotEmpty) {
+      _lastWriteError = null;
+      onBodyChanged(state.body);
+      await _queue;
+    }
+    if (_lastWriteError != null && state.body.isNotEmpty) return false;
+
     if (state.body.isEmpty && _memoId != null) {
       // Everything was erased — this session leaves no row.
       final dao = ref.read(databaseProvider).memosDao;
       await dao.deleteMemo(_memoId!);
     }
+    return true;
   }
 }
 

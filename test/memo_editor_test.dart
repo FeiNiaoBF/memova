@@ -1,8 +1,14 @@
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memova/data/app_database.dart';
+import 'package:memova/data/providers.dart';
+import 'package:memova/features/memo_editor/memo_editor_providers.dart';
+import 'package:memova/main.dart';
 
 import 'helpers.dart';
+
 Future<void> openEditor(WidgetTester tester) async {
   await tester.tap(find.byType(FloatingActionButton));
   // Drive the route transition with fixed pumps. pumpAndSettle is banned
@@ -18,8 +24,10 @@ void main() {
     await openEditor(tester);
 
     expect(find.byType(TextField), findsOneWidget);
-    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text,
-        isEmpty);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      isEmpty,
+    );
     expect(tester.testTextInput.hasAnyClients, isTrue); // the field has focus
 
     await db.close();
@@ -43,8 +51,9 @@ void main() {
     await db.close();
   });
 
-  testWidgets('every keystroke persists immediately, with no close or flush',
-      (tester) async {
+  testWidgets('every keystroke persists immediately, with no close or flush', (
+    tester,
+  ) async {
     // User story 6: an interruption must never cost a thought. The write must
     // land at keystroke time, not on close — on a real device that write is
     // already in the SQLite file, so a process kill mid-typing loses nothing.
@@ -63,14 +72,58 @@ void main() {
     await db.close();
   });
 
-  testWidgets('returning to the List shows the new memo on top',
-      (tester) async {
+  testWidgets('a failed save does not poison later saves', (tester) async {
+    late AppDatabase db;
+    var failNextWrite = true;
+    db = AppDatabase(NativeDatabase.memory());
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          memoSaveProvider.overrideWithValue((memoId, body) async {
+            if (failNextWrite) {
+              failNextWrite = false;
+              throw StateError('simulated storage failure');
+            }
+            final dao = db.memosDao;
+            if (memoId == null) return dao.createMemo(body);
+            await dao.updateMemoBody(memoId, body);
+            return memoId;
+          }),
+        ],
+        child: const MemovaApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await openEditor(tester);
+    await tester.enterText(find.byType(TextField), 'first attempt');
+    await tester.pump();
+    expect(find.text('保存失败'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'second attempt');
+    await tester.pump();
+    expect(find.text('已保存'), findsOneWidget);
+    expect((await allMemos(db)).map((memo) => memo.body), ['second attempt']);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await db.close();
+  });
+
+  testWidgets('returning to the List shows the new memo on top', (
+    tester,
+  ) async {
     final db = await pumpApp(tester);
-    await db.into(db.memos).insert(MemosCompanion.insert(
-          body: 'older memo',
-          createdAt: DateTime(2026, 1, 1, 8),
-          updatedAt: DateTime(2026, 1, 1, 8),
-        ));
+    await db
+        .into(db.memos)
+        .insert(
+          MemosCompanion.insert(
+            body: 'older memo',
+            createdAt: DateTime(2026, 1, 1, 8),
+            updatedAt: DateTime(2026, 1, 1, 8),
+          ),
+        );
     await tester.pumpAndSettle();
 
     await openEditor(tester);
@@ -88,8 +141,9 @@ void main() {
     await db.close();
   });
 
-  testWidgets('closing an untouched empty editor creates no row',
-      (tester) async {
+  testWidgets('closing an untouched empty editor creates no row', (
+    tester,
+  ) async {
     final db = await pumpApp(tester);
 
     await openEditor(tester);
@@ -101,8 +155,9 @@ void main() {
     await db.close();
   });
 
-  testWidgets('erasing everything and closing leaves no row behind',
-      (tester) async {
+  testWidgets('erasing everything and closing leaves no row behind', (
+    tester,
+  ) async {
     final db = await pumpApp(tester);
 
     await openEditor(tester);

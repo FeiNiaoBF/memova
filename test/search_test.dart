@@ -10,8 +10,9 @@ Future<void> openSearch(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('typing in search filters the List live; clearing restores it',
-      (tester) async {
+  testWidgets('typing in search filters the List live; clearing restores it', (
+    tester,
+  ) async {
     final db = await pumpApp(tester);
     await seedMemo(db, 'Buy milk and bread', DateTime(2026, 1, 1, 8));
     await seedMemo(db, 'MILK alternatives', DateTime(2026, 1, 1, 9));
@@ -46,6 +47,23 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('unrelated'), findsOneWidget);
 
+    await db.close();
+  });
+
+  testWidgets('closing search restores the unfiltered List', (tester) async {
+    final db = await pumpApp(tester);
+    await seedMemo(db, 'milk memo', DateTime(2026, 1, 1));
+    await seedMemo(db, 'other memo', DateTime(2026, 1, 2));
+    await tester.pumpAndSettle();
+
+    await openSearch(tester);
+    await tester.enterText(find.byType(TextField), 'milk');
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.text('milk memo'), findsOneWidget);
+    expect(find.text('other memo'), findsOneWidget);
     await db.close();
   });
 
